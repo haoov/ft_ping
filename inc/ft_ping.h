@@ -15,12 +15,20 @@
 #include <string.h>
 
 /* Error */
-#define ERR_NO_HOST	"missing host operand"
+#define ERR_NO_HOST		"missing host operand"
 #define ERR_UNK_HOST	"unknown host"
 
-struct ft_ping {
-	int sockfd;
-	struct sockaddr dst;
+struct ft_ping
+{
+	const char		*hostname;
+	int				sockfd;
+	struct sockaddr	dst;
 };
+
+/* Functions declaration */
+struct sockaddr	resolve_hostanme(const char *hostname);
+int				create_socket();
+void			clean_all(int status, void *data);
+void			print_ping(const char *hostname, struct sockaddr dst);
 
 #endif
