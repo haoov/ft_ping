@@ -3,6 +3,7 @@ FROM debian:latest
 
 # Install requiered packages
 RUN	apt update -y && apt install -y \
+	vim \
 	gcc \
 	clang \
 	make \
