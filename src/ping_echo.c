@@ -1,18 +1,18 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   icmp_echo.c                                        :+:      :+:    :+:   */
+/*   ping_echo.c                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: rasbbah <rsabbah@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/12 10:46:33 by rasbbah           #+#    #+#             */
-/*   Updated: 2025/03/12 19:05:30 by rasbbah          ###   ########.fr       */
+/*   Updated: 2025/03/13 18:13:36 by rasbbah          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../inc/ft_ping.h"
 
-void	set_timestamp(byte_t *data) {
+void	set_timestamp(uint8_t *data) {
 	long			*ts;
 	struct timeval	tv;
 
@@ -24,7 +24,7 @@ void	set_timestamp(byte_t *data) {
 	*ts = tv.tv_usec;
 }
 
-void	fill_data(byte_t *data, int size) {
+void	fill_data(uint8_t *data, int size) {
 	int		i;
 	int		ts_size;
 
@@ -37,44 +37,56 @@ void	fill_data(byte_t *data, int size) {
 	set_timestamp(data);
 }
 
-byte2_t	compute_checksum(byte_t *pkt, int size) {
-	byte4_t	sum;
+/*
+ * Compute packet checksum.
+ * */
+uint16_t	compute_checksum(uint8_t *pkt, int size) {
+	uint32_t	sum;
 
+	/* Add 16bits words values in a 32bits accumulator to store carries */
 	while (size > 1) {
-		sum += *(byte2_t*)pkt++;
+		sum += *(uint16_t*)pkt++;
 		size -= 2;
 	}
+	/* If odd number of words add the last one */
 	if (size > 0) {
-		sum += *(byte2_t*)pkt;
+		sum += *(uint16_t*)pkt;
 	}
+	/* Fold 32bits sum into 16bits */
 	while (sum >> 16) {
 		sum = (sum & 0xFFFF) + (sum >> 16);
 	}
-	return (byte2_t)~sum;
+	/* Returns 1's complement */
+	return (uint16_t)~sum;
 }
 
-void	build_icmp_packet(byte_t *icmp_pkt, byte2_t seq, int size) {
+void	build_icmp_packet(uint8_t *icmp_pkt, int size, uint16_t seq) {
 	struct icmphdr	*hdr;
 
 	hdr = (struct icmphdr*)icmp_pkt;
 	hdr->type = ICMP_ECHO;
 	hdr->code = 0x0;
-	hdr->un.echo.id = 0x2A;
+	hdr->un.echo.id = htons(getpid() & 0xFFFF);
 	hdr->un.echo.sequence = htons(seq);
 	fill_data(icmp_pkt + ICMP_HD_SIZE, size - ICMP_HD_SIZE);
 	hdr->checksum = htons(compute_checksum(icmp_pkt, ICMP_DEF_PKT_SIZE));
 }
 
-void	send_icmp_echo(struct ft_ping *ft_ping) {
+void	send_icmp_echo(struct ping *ping) {
 	if (sendto(
-			ft_ping->sockfd,
-			ft_ping->icmp_pkt,
-			ft_ping->pkt_size,
+			ping->sockfd,
+			ping->icmp_pkt,
+			ping->pkt_size,
 			0,
-			&ft_ping->dst,
-			sizeof(ft_ping->dst)
+			&ping->dst,
+			sizeof(struct sockaddr)
 		) == -1) {
 		errx(EXIT_FAILURE, "%s", strerror(errno));
 	}
-	ft_ping->npkt_sent++;
+	++ping->npkt_sent;
+}
+
+void ping_echo(struct ping *ping) {
+	build_icmp_packet(ping->icmp_pkt, ping->pkt_size, ping->seq++);
+	send_icmp_echo(ping);
 }

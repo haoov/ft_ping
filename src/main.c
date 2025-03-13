@@ -6,26 +6,24 @@
 /*   By: rasbbah <rsabbah@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/11 09:00:11 by rasbbah           #+#    #+#             */
-/*   Updated: 2025/03/12 18:08:16 by rasbbah          ###   ########.fr       */
+/*   Updated: 2025/03/13 12:10:44 by rasbbah          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../inc/ft_ping.h"
 
 int main(const int argc, const char **argv) {
-	struct ft_ping	ft_ping;
-	byte2_t			seq;
+	struct ping	ping;
 
 	if (argc != 2) {
 		errx(EXIT_FAILURE, "%s", ERR_NO_HOST);
 	}
-	init(&ft_ping, argv[1]);
-	print_ping(ft_ping.hostname, ft_ping.dst, ft_ping.pkt_size - ICMP_HD_SIZE);
-	seq = 0;
+	init(&ping, argv[1]);
+	print_ping(ping.hostname, ping.dst, ping.pkt_size - ICMP_HD_SIZE);
 	while (true) {
-		build_icmp_packet(ft_ping.icmp_pkt, seq++, ft_ping.pkt_size);
-		send_icmp_echo(&ft_ping);
-		sleep(1);
+		ping_echo(&ping);
+		ping_reply(&ping);
+		usleep(ping.stime);
 	}
 	return EXIT_SUCCESS;
 }

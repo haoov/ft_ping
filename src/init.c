@@ -6,23 +6,32 @@
 /*   By: rasbbah <rsabbah@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/11 09:01:56 by rasbbah           #+#    #+#             */
-/*   Updated: 2025/03/12 18:09:08 by rasbbah          ###   ########.fr       */
+/*   Updated: 2025/03/13 16:54:19 by rasbbah          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../inc/ft_ping.h"
 
-int create_socket() {
+/*
+ * Create raw socket and set input timeout
+ * */
+int create_socket(struct timeval to) {
 	int	sockfd;
 
 	sockfd = socket(PF_INET, SOCK_RAW, IPPROTO_ICMP);
-	if (sockfd == -1)
-	{
+	if (sockfd == -1) {
+		errx(EXIT_FAILURE, "%s", strerror(errno));
+	}
+	(void)to;
+	if (setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, &to, sizeof(to)) == -1) {
 		errx(EXIT_FAILURE, "%s", strerror(errno));
 	}
 	return sockfd;
 }
 
+/*
+ * Resolve hostname to sockaddr struct
+ * */
 struct sockaddr resolve_hostname(const char *hostname) {
 	struct addrinfo	*res, hint;
 	struct sockaddr	dst;
@@ -47,24 +56,31 @@ struct sockaddr resolve_hostname(const char *hostname) {
 	return dst;
 }
 
-byte_t *malloc_pkt_buffer(int size) {
-	byte_t	*buffer;
+/*
+ * Malloc 'size' bytes for icmp packet buffer
+ * */
+uint8_t *malloc_pkt_buffer(int size) {
+	uint8_t	*buffer;
 
-	buffer = calloc(sizeof(byte_t), size);
+	buffer = calloc(sizeof(uint8_t), size + IP_MAX_HD_SIZE);
 	if (!buffer) {
 		errx(EXIT_FAILURE, "%s", ERR_MALLOC);
 	}
 	return buffer;
 }
 
-void init(struct ft_ping *ft_ping, const char *hostname) {
-	memset(ft_ping, 0, sizeof(struct ft_ping));
+void init(struct ping *ping, const char *hostname) {
+	struct timeval	timeout;
+
+	timeout.tv_sec = 1;
+	timeout.tv_usec = 0;
+	memset(ping, 0, sizeof(struct ping));
 	signal(SIGINT, stop_program);
-	on_exit(clean_all, ft_ping);
-	ft_ping->pkt_size = ICMP_DEF_PKT_SIZE;
-	ft_ping->hostname = hostname;
-	ft_ping->sockfd = create_socket();
-	ft_ping->dst = resolve_hostname(ft_ping->hostname);
-	ft_ping->icmp_pkt = malloc_pkt_buffer(ft_ping->pkt_size);
+	on_exit(clean_all, ping);
+	ping->pkt_size = ICMP_DEF_PKT_SIZE;
+	ping->hostname = hostname;
+	ping->sockfd = create_socket(timeout);
+	ping->dst = resolve_hostname(ping->hostname);
+	ping->icmp_pkt = malloc_pkt_buffer(ping->pkt_size);
 }
 
