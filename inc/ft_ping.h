@@ -6,7 +6,7 @@
 /*   By: rasbbah <rsabbah@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/12 13:31:53 by rasbbah           #+#    #+#             */
-/*   Updated: 2025/03/17 21:07:06 by rasbbah          ###   ########.fr       */
+/*   Updated: 2025/03/17 22:14:23 by rasbbah          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,6 +36,8 @@
 /* Errors */
 #define ERR_NO_HOST		"missing host operand"
 #define ERR_UNK_HOST	"unknown host"
+#define ERR_TOSMALL		"value to small"
+#define ERR_TOBIG		"value to big"
 #define ERR_MALLOC		"malloc error"
 #define ERR_INPKTSIZE	"invalid packet size"
 
@@ -71,6 +73,8 @@ struct ping
 	useconds_t			stime;
 	int					npkt_sent;
 	int					npkt_recv;
+	int					count;
+	int					linger;
 	double				rttmin;
 	double				rttmax;
 	double				rtts[MAXRTTVAL];
@@ -78,7 +82,7 @@ struct ping
 
 /* Functions declaration */
 void	init(const char **argv);
-void	print_ping();
+void	print_ping(struct ping *ping);
 void	stop_program(int sig);
 void	ping_stats();
 void	icmp_request(struct ping *ping);

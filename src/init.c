@@ -6,7 +6,7 @@
 /*   By: rasbbah <rsabbah@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/11 09:01:56 by rasbbah           #+#    #+#             */
-/*   Updated: 2025/03/17 21:05:49 by rasbbah          ###   ########.fr       */
+/*   Updated: 2025/03/17 22:26:44 by rasbbah          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -88,10 +88,8 @@ void	init_args(const char **argv)
 					"verbose", BOOL_T, (argval_t)false);
 	add_argument(ping.parser, "size", 's',
 					"size", INT_T, (argval_t)ICMP_DEF_DATA_SIZE);
-	add_argument(ping.parser, "count", 'c', "count", INT_T, (argval_t)-1);
-	add_argument(ping.parser, "interval", 'i',
-					"interval", INT_T, (argval_t)DEF_INTERVAL);
-	add_argument(ping.parser, "ttl", 0, "ttl", INT_T, (argval_t)DEF_TTL);
+	add_argument(ping.parser, "count", 'c', "count", INT_T, (argval_t)0);
+	add_argument(ping.parser, "linger", 'W', "linger", INT_T, (argval_t)1);
 	parse_args(ping.parser, argv);
 	if (ping.parser->err)
 	{
@@ -114,19 +112,25 @@ void	check_args(struct ping ping)
 	{
 		errx(EXIT_FAILURE, "%s `%d`", ERR_INPKTSIZE, ping.data_size);
 	}
+	if (ping.linger <= 0)
+	{
+		errx(EXIT_FAILURE, "%s `%d`", ERR_TOSMALL, ping.linger);
+	}
 }
 
 void init(const char **argv)
 {
 	struct timeval	timeout;
 
-	timeout.tv_sec = 1;
 	timeout.tv_usec = 0;
 	signal(SIGINT, stop_program);
 	init_args(argv);
 	ping.host = get_strarg(ping.parser->args, "host");
 	ping.data_size = get_intarg(ping.parser->args, "size");
+	ping.count = get_intarg(ping.parser->args, "count");
+	ping.linger = get_intarg(ping.parser->args, "linger");
 	check_args(ping);
+	timeout.tv_sec = ping.linger;
 	ping.sockfd = create_socket(timeout);
 	ping.dst = resolve_hostname(ping.host);
 	ping.icmp_pkt = malloc_pkt_buffer(ping.data_size + ICMP_HD_SIZE);
