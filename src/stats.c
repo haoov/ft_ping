@@ -6,7 +6,7 @@
 /*   By: rasbbah <rsabbah@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/11 09:24:01 by rasbbah           #+#    #+#             */
-/*   Updated: 2025/03/17 12:06:36 by rasbbah          ###   ########.fr       */
+/*   Updated: 2025/03/17 19:42:03 by rasbbah          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,7 @@ void ping_stats()
 {
 	double	rttdev, rttavg;
 
-	printf("--- %s ping statistics ---\n", ping.p_host);
+	printf("--- %s ping statistics ---\n", ping.host);
 	printf("%d packets transmitted, %d packets received, %.0f%% packet loss\n",
 			ping.npkt_sent,
 			ping.npkt_recv,
@@ -68,12 +68,12 @@ void reply_stats(uint8_t *buf, ssize_t size)
 
 	if (size == -1)
 	{
-		printf("%s: %s\n", ping.p_host, ERR_TIMEO);
+		printf("%s: %s\n", ping.host, ERR_TIMEO);
 		return;
 	}
 	else if ((size_t)size < sizeof(struct iphdr))
 	{
-		printf("%s: %s\n", ping.p_host, ERR_SMALL);
+		printf("%s: %s\n", ping.host, ERR_SMALL);
 		return;
 	}
 	iphdr = (struct iphdr*)buf;
@@ -89,7 +89,7 @@ void reply_stats(uint8_t *buf, ssize_t size)
 	ping.rtts[ping.seq - 1] = rtt;
 	printf("%ld bytes from %s: icmp_seq=%d ttl=%d time=%.2f ms\n",
 			size - iphdr_len,
-			ping.p_host,
+			ping.addrstr,
 			ntohs(icmphdr->un.echo.sequence),
 			iphdr->ttl,
 			rtt);

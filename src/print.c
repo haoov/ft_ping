@@ -6,7 +6,7 @@
 /*   By: rasbbah <rsabbah@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/17 09:48:26 by rasbbah           #+#    #+#             */
-/*   Updated: 2025/03/17 12:11:03 by rasbbah          ###   ########.fr       */
+/*   Updated: 2025/03/17 20:52:29 by rasbbah          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,19 +30,18 @@ void	print_help()
 	printf("  -?, --help\t\t\tgive this help message\n");
 }
 
-void print_ping(const char *hostname, struct sockaddr dst, int data_size)
+void print_ping(struct ping ping)
 {
 	struct sockaddr_in	*addr_n;
-	char				addr_p[16];
 
-	addr_n = (struct sockaddr_in*)&dst;
+	addr_n = (struct sockaddr_in*)&ping.dst;
 	if (inet_ntop(	AF_INET,
 					&addr_n->sin_addr,
-					addr_p,
+					ping.addrstr,
 					sizeof(struct sockaddr_in)) == NULL)
 	{
 		errx(EXIT_FAILURE, "%s", strerror(errno));
 	}
-	printf("PING %s (%s): %d data bytes\n", hostname, addr_p, data_size);
+	printf("PING %s (%s): %d data bytes\n", ping.host, ping.addrstr, ping.data_size);
 }
 

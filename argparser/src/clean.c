@@ -6,37 +6,22 @@
 /*   By: rasbbah <rsabbah@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/16 14:10:32 by rasbbah           #+#    #+#             */
-/*   Updated: 2025/03/17 10:07:55 by rasbbah          ###   ########.fr       */
+/*   Updated: 2025/03/17 18:21:35 by rasbbah          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "argparser.h"
 
-extern struct exparg	*explist;
-
-void	free_expargs()
-{
-	struct exparg	*args, *next;
-
-	args = explist;
-	while (args)
-	{
-		next = args->next;
-		free(args);
-		args = next;
-	}
-}
-
-void	free_args(struct arg *args)
+void	free_parser(struct argparser *p)
 {
 	struct arg	*next;
 
-	free_expargs();
-	while (args)
+	while (p->args)
 	{
-		next = args->next;
-		free(args);
-		args = next;
+		next = p->args->next;
+		free(p->args);
+		p->args = next;
 	}
+	free(p);
 }
 

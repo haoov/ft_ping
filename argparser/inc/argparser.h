@@ -6,7 +6,7 @@
 /*   By: rasbbah <rsabbah@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/14 15:07:56 by rasbbah           #+#    #+#             */
-/*   Updated: 2025/03/17 10:48:53 by rasbbah          ###   ########.fr       */
+/*   Updated: 2025/03/17 20:00:55 by rasbbah          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,13 +20,19 @@
 #include <unistd.h>
 #include <err.h>
 #include <stdarg.h>
+#include <stdbool.h>
+#include <errno.h>
+#include <limits.h>
+
+#define ERROR	-1
+#define SUCCESS	0
 
 #define PERR_INOPT	"invalid option"
 #define PERR_IVAL	"invalid value"
-#define PERR_REQARG	"argument is required"
+#define PERR_REQARG	"option requires an argument"
 
 /* TYPES */
-typedef uint8_t (*check_ft)(const char *);
+typedef bool	(*check_ft)(const char *);
 typedef void	(*act_ft)(void*, void*);
 
 enum argtype
@@ -36,30 +42,23 @@ enum argtype
 	STR_T
 };
 
-/* Struct to store expected arguments */
-struct exparg
-{
-	const char		*name;	// Argument name
-	char			shval;	// Short option value
-	char			*lgval;	// Long option value
-	enum argtype	 type;	// Type of argument
-	uint8_t			found;	// Argument has been found
-	struct exparg	*next;	// Pointer to next arg
-};
-
-union argval
+typedef union argval
 {
 	int			ival;
-	const char	*pval;
-};
+	char	*pval;
+} argval_t;
 
-/* Struct to store parsed arguments */
+/* Struct to store arguments */
 struct arg
 {
 	const char		*name;
-	enum argtype	type;
-	union argval	val;
-	struct arg		*next;		// Pointer to next arg
+	char			shval;	// Short option value
+	char			*lgval;	// Long option value
+	enum argtype	 type;	// Type of argument
+	bool			found;	// Argument has been found
+	argval_t		val;	// Argument value
+	argval_t		def;	// Default value if not found
+	struct arg		*next;	// Pointer to next arg
 };
 
 struct argparser
@@ -74,11 +73,14 @@ struct argparser
 					(*s == '-' && s[1]))
 
 /* FUNCTION DECLARATIONS */
-int			arg(struct arg **args, const char *name, int type, union argval val);
-struct arg	*get_arg(struct arg *list, const char *name);
-int			exparg(char *name, char shval, char *lgval, int type);
-void		arg_err(const char *fmt, ...);
-struct		argparser	parse_args(const char **av);
-void		free_args(struct arg *args);
+struct argparser	*new_parser();
+void				add_argument(struct argparser *p, char *name,
+									char sh, char *lg, int type, argval_t def);
+const char			*get_strarg(struct arg *list, const char *name);
+int					get_intarg(struct arg *list, const char *name);
+void				arg_err(const char *fmt, ...);
+void				parse_args(struct argparser *p, const char **av);
+void				free_args(struct arg *args);
+void				free_parser(struct argparser *p);
 
 #endif

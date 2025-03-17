@@ -6,7 +6,7 @@
 /*   By: rasbbah <rsabbah@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/11 09:00:11 by rasbbah           #+#    #+#             */
-/*   Updated: 2025/03/17 11:58:09 by rasbbah          ###   ########.fr       */
+/*   Updated: 2025/03/17 20:52:10 by rasbbah          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@ int main(const int argc, const char **argv)
 	(void)argc;
 	atexit(clean_all);
 	init(argv);
-	print_ping(ping.p_host, ping.dst, ping.pkt_size - ICMP_HD_SIZE);
+	print_ping(ping);
 	while (true)
 	{
 		icmp_request(&ping);

@@ -6,7 +6,7 @@
 /*   By: rasbbah <rsabbah@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/12 13:31:53 by rasbbah           #+#    #+#             */
-/*   Updated: 2025/03/17 12:06:27 by rasbbah          ###   ########.fr       */
+/*   Updated: 2025/03/17 21:07:06 by rasbbah          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,43 +37,48 @@
 #define ERR_NO_HOST		"missing host operand"
 #define ERR_UNK_HOST	"unknown host"
 #define ERR_MALLOC		"malloc error"
+#define ERR_INPKTSIZE	"invalid packet size"
 
 #define ERR_TIMEO		"timeout"
 #define ERR_SMALL		"packet too small"
 
 /* Sizes */
 #define ICMP_HD_SIZE		0x8
-#define ICMP_DEF_PKT_SIZE	0x40
+#define ICMP_DEF_DATA_SIZE	0x38
 #define IP_MAX_HD_SIZE		0x3C
 
+#define	DEF_INTERVAL		0x1
+#define DEF_TTL				0x3C
+
 #define MAXRTTVAL			0x64
+#define ADDRLEN				0xF
 
 /* Tiemout */
 #define DEF_TIMEOUT	0x1
 
 /* Types */
 
-typedef struct sockaddr		ping_addr;
-
-struct ping {
-	struct arg	*host;
-	#define p_host host->val.pval
-	int			sockfd;
-	ping_addr	dst;
-	uint8_t		*icmp_pkt;
-	int			pkt_size;
-	uint16_t	seq;
-	useconds_t	stime;
-	int			npkt_sent;
-	int			npkt_recv;
-	double		rttmin;
-	double		rttmax;
-	double		rtts[MAXRTTVAL];
+struct ping
+{
+	struct argparser	*parser;
+	const char			*host;
+	int					sockfd;
+	struct sockaddr		dst;
+	char				addrstr[ADDRLEN];
+	uint8_t				*icmp_pkt;
+	int					data_size;
+	uint16_t			seq;
+	useconds_t			stime;
+	int					npkt_sent;
+	int					npkt_recv;
+	double				rttmin;
+	double				rttmax;
+	double				rtts[MAXRTTVAL];
 };
 
 /* Functions declaration */
 void	init(const char **argv);
-void	print_ping(const char *hostname, struct sockaddr dst, int data_size);
+void	print_ping();
 void	stop_program(int sig);
 void	ping_stats();
 void	icmp_request(struct ping *ping);

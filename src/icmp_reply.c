@@ -6,7 +6,7 @@
 /*   By: rasbbah <rsabbah@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/13 11:06:10 by rasbbah           #+#    #+#             */
-/*   Updated: 2025/03/17 12:10:14 by rasbbah          ###   ########.fr       */
+/*   Updated: 2025/03/17 19:04:41 by rasbbah          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,7 @@ ssize_t	recv_icmp_reply(struct ping *ping)
 	addr_len = sizeof(struct sockaddr);
 	size = recvfrom(ping->sockfd,
 					ping->icmp_pkt,
-					ping->pkt_size + IP_MAX_HD_SIZE,
+					ping->data_size + ICMP_HD_SIZE + IP_MAX_HD_SIZE,
 					0,
 					&ping->dst,
 					&addr_len);

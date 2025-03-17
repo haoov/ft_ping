@@ -6,7 +6,7 @@
 /*   By: rasbbah <rsabbah@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/11 09:01:56 by rasbbah           #+#    #+#             */
-/*   Updated: 2025/03/17 12:07:56 by rasbbah          ###   ########.fr       */
+/*   Updated: 2025/03/17 21:05:49 by rasbbah          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,7 +71,7 @@ uint8_t *malloc_pkt_buffer(int size)
 {
 	uint8_t	*buffer;
 
-	buffer = calloc(sizeof(uint8_t), size + IP_MAX_HD_SIZE);
+	buffer = calloc(size + IP_MAX_HD_SIZE, sizeof(uint8_t));
 	if (!buffer)
 	{
 		errx(EXIT_FAILURE, "%s", ERR_MALLOC);
@@ -81,26 +81,38 @@ uint8_t *malloc_pkt_buffer(int size)
 
 void	init_args(const char **argv)
 {
-	struct argparser	parser;
-
-	parser.args = NULL;
-	exparg("host", 0, NULL, STR_T);
-	exparg("help", '?', "help", BOOL_T);
-	exparg("verbose", 'v', "verbose", BOOL_T);
-	parser = parse_args(argv);
-	if (parser.err)
+	ping.parser = new_parser();
+	add_argument(ping.parser, "host", 0, NULL, STR_T, (argval_t)0);
+	add_argument(ping.parser, "help", '?', "help", BOOL_T, (argval_t)false);
+	add_argument(ping.parser, "verbose", 'v',
+					"verbose", BOOL_T, (argval_t)false);
+	add_argument(ping.parser, "size", 's',
+					"size", INT_T, (argval_t)ICMP_DEF_DATA_SIZE);
+	add_argument(ping.parser, "count", 'c', "count", INT_T, (argval_t)-1);
+	add_argument(ping.parser, "interval", 'i',
+					"interval", INT_T, (argval_t)DEF_INTERVAL);
+	add_argument(ping.parser, "ttl", 0, "ttl", INT_T, (argval_t)DEF_TTL);
+	parse_args(ping.parser, argv);
+	if (ping.parser->err)
 	{
 		exit(EXIT_FAILURE);
 	}
-	if (get_arg(parser.args, "help"))
+}
+
+void	check_args(struct ping ping)
+{
+	if (get_intarg(ping.parser->args, "help"))
 	{
 		print_help();
 		exit(EXIT_SUCCESS);
 	}
-	ping.host = get_arg(parser.args, "host");
 	if (!ping.host)
 	{
 		errx(EXIT_FAILURE, "%s", ERR_NO_HOST);
+	}
+	if (ping.data_size < 0)
+	{
+		errx(EXIT_FAILURE, "%s `%d`", ERR_INPKTSIZE, ping.data_size);
 	}
 }
 
@@ -112,9 +124,11 @@ void init(const char **argv)
 	timeout.tv_usec = 0;
 	signal(SIGINT, stop_program);
 	init_args(argv);
-	ping.pkt_size = ICMP_DEF_PKT_SIZE;
+	ping.host = get_strarg(ping.parser->args, "host");
+	ping.data_size = get_intarg(ping.parser->args, "size");
+	check_args(ping);
 	ping.sockfd = create_socket(timeout);
-	ping.dst = resolve_hostname(ping.p_host);
-	ping.icmp_pkt = malloc_pkt_buffer(ping.pkt_size);
+	ping.dst = resolve_hostname(ping.host);
+	ping.icmp_pkt = malloc_pkt_buffer(ping.data_size + ICMP_HD_SIZE);
 }
 

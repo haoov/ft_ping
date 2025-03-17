@@ -6,26 +6,40 @@
 /*   By: rasbbah <rsabbah@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/15 20:14:21 by rasbbah           #+#    #+#             */
-/*   Updated: 2025/03/16 14:39:45 by rasbbah          ###   ########.fr       */
+/*   Updated: 2025/03/17 19:55:10 by rasbbah          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "argparser.h"
 
-struct arg	*get_arg(struct arg *list, const char *name)
+const char	*get_strarg(struct arg *list, const char *name)
 {
 	while (list)
 	{
-		if (!strcmp(list->name, name))
+		if (list->type == STR_T && !strcmp(list->name, name))
 		{
-			return list;
+			return list->val.pval;
 		}
 		list = list->next;
 	}
 	return NULL;
 }
 
-void	add_arg(struct arg **list, struct arg *arg)
+int	get_intarg(struct arg *list, const char *name)
+{
+	while (list)
+	{
+		if ((list->type == INT_T || list->type == BOOL_T) &&
+				!strcmp(list->name, name))
+		{
+			return list->val.ival;
+		}
+		list = list->next;
+	}
+	return 0;
+}
+
+void	arglist_add(struct arg **list, struct arg *arg)
 {
 	struct arg	*cur;
 
@@ -44,7 +58,7 @@ void	add_arg(struct arg **list, struct arg *arg)
 	}
 }
 
-struct arg	*new_arg(const char *name, int type, union argval val)
+struct arg	*new_arg(char *name, char sh, char *lg, int type, argval_t def)
 {
 	struct arg	*new;
 
@@ -54,21 +68,26 @@ struct arg	*new_arg(const char *name, int type, union argval val)
 		return NULL;
 	}
 	new->name = name;
+	new->shval = sh;
+	new->lgval = lg;
 	new->type = type;
-	new->val = val;
+	new->val = def;
 	new->next = NULL;
 	return new;
 }
 
-int	arg(struct arg **args, const char *name, int type, union argval val)
+void	add_argument(struct argparser *p, char *name,
+						char sh, char *lg, int type, argval_t def)
 {
 	struct arg	*arg;
 
-	arg = new_arg(name, type, val);
+	arg = new_arg(name, sh, lg, type, def);
 	if (!arg)
 	{
-		return -1;
+		p->err = true;
 	}
-	add_arg(args, arg);
-	return 0;
+	else
+	{
+		arglist_add(&p->args, arg);
+	}
 }
