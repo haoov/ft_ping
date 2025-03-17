@@ -6,7 +6,7 @@
 /*   By: rasbbah <rsabbah@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/12 13:31:53 by rasbbah           #+#    #+#             */
-/*   Updated: 2025/03/17 11:44:49 by rasbbah          ###   ########.fr       */
+/*   Updated: 2025/03/17 12:06:27 by rasbbah          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,11 +76,13 @@ void	init(const char **argv);
 void	print_ping(const char *hostname, struct sockaddr dst, int data_size);
 void	stop_program(int sig);
 void	ping_stats();
-void	ping_echo(struct ping *ping);
-void	ping_reply(struct ping *ping);
+void	icmp_request(struct ping *ping);
+void	icmp_reply(struct ping *ping);
 void	reply_stats(uint8_t *buf, ssize_t size);
 void	print_help();
 
 void	clean_all();
+
+double	reducef(double *arr, size_t size);
 
 #endif

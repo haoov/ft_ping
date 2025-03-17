@@ -6,7 +6,7 @@
 /*   By: rasbbah <rsabbah@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/11 09:01:56 by rasbbah           #+#    #+#             */
-/*   Updated: 2025/03/17 11:38:40 by rasbbah          ###   ########.fr       */
+/*   Updated: 2025/03/17 12:07:56 by rasbbah          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,15 +17,17 @@ extern struct ping	ping;
 /*
  * Create raw socket and set input timeout
  * */
-int create_socket(struct timeval to) {
+int create_socket(struct timeval to)
+{
 	int	sockfd;
 
 	sockfd = socket(PF_INET, SOCK_RAW, IPPROTO_ICMP);
-	if (sockfd == -1) {
+	if (sockfd == -1)
+	{
 		errx(EXIT_FAILURE, "%s", strerror(errno));
 	}
-	(void)to;
-	if (setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, &to, sizeof(to)) == -1) {
+	if (setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, &to, sizeof(to)) == -1)
+	{
 		errx(EXIT_FAILURE, "%s", strerror(errno));
 	}
 	return sockfd;
@@ -34,7 +36,8 @@ int create_socket(struct timeval to) {
 /*
  * Resolve hostname to sockaddr struct
  * */
-struct sockaddr resolve_hostname(const char *hostname) {
+struct sockaddr resolve_hostname(const char *hostname)
+{
 	struct addrinfo	*res, hint;
 	struct sockaddr	dst;
 	int				ret;
@@ -45,13 +48,16 @@ struct sockaddr resolve_hostname(const char *hostname) {
 	hint.ai_socktype = SOCK_RAW;
 	hint.ai_protocol = IPPROTO_ICMP;
 	ret = getaddrinfo(hostname, NULL, &hint, &res);
-	if (ret == -1) {
+	if (ret == -1)
+	{
 		errx(EXIT_FAILURE, "%s", gai_strerror(errno));
 	}
-	if (!res) {
+	if (!res)
+	{
 		errx(EXIT_FAILURE, "%s", ERR_UNK_HOST);
 	}
-	if (memcpy(&dst, res->ai_addr, sizeof(struct sockaddr)) == NULL) {
+	if (memcpy(&dst, res->ai_addr, sizeof(struct sockaddr)) == NULL)
+	{
 		errx(EXIT_FAILURE, "%s", strerror(errno));
 	}
 	freeaddrinfo(res);
@@ -61,11 +67,13 @@ struct sockaddr resolve_hostname(const char *hostname) {
 /*
  * Malloc 'size' bytes for icmp packet buffer
  * */
-uint8_t *malloc_pkt_buffer(int size) {
+uint8_t *malloc_pkt_buffer(int size)
+{
 	uint8_t	*buffer;
 
 	buffer = calloc(sizeof(uint8_t), size + IP_MAX_HD_SIZE);
-	if (!buffer) {
+	if (!buffer)
+	{
 		errx(EXIT_FAILURE, "%s", ERR_MALLOC);
 	}
 	return buffer;
@@ -96,7 +104,8 @@ void	init_args(const char **argv)
 	}
 }
 
-void init(const char **argv) {
+void init(const char **argv)
+{
 	struct timeval	timeout;
 
 	timeout.tv_sec = 1;
