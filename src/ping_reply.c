@@ -6,7 +6,7 @@
 /*   By: rasbbah <rsabbah@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/13 11:06:10 by rasbbah           #+#    #+#             */
-/*   Updated: 2025/03/13 18:36:11 by rasbbah          ###   ########.fr       */
+/*   Updated: 2025/03/17 11:46:06 by rasbbah          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,5 +55,5 @@ void ping_reply(struct ping *ping) {
 		gettimeofday(&end, NULL);
 		ping->stime = compute_sleep_time(start, end);
 	}
-	reply_stats(ping, nbyte_recv);
+	reply_stats(ping->icmp_pkt, nbyte_recv);
 }

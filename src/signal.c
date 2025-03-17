@@ -6,13 +6,16 @@
 /*   By: rasbbah <rsabbah@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/12 10:16:51 by rasbbah           #+#    #+#             */
-/*   Updated: 2025/03/12 18:10:14 by rasbbah          ###   ########.fr       */
+/*   Updated: 2025/03/17 11:40:09 by rasbbah          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../inc/ft_ping.h"
 
 void stop_program(int sig) {
-	(void)sig;
-	exit(0);
+	if (sig == SIGINT)
+	{
+		ping_stats();
+		exit(EXIT_SUCCESS);
+	}
 }

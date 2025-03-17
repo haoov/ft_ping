@@ -1,28 +1,30 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   clean.c                                            :+:      :+:    :+:   */
+/*   arg_err.c                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: rasbbah <rsabbah@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/03/11 09:03:25 by rasbbah           #+#    #+#             */
-/*   Updated: 2025/03/17 11:37:41 by rasbbah          ###   ########.fr       */
+/*   Created: 2025/03/15 19:00:18 by rasbbah           #+#    #+#             */
+/*   Updated: 2025/03/16 14:26:46 by rasbbah          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../inc/ft_ping.h"
+#include "argparser.h"
 
-extern struct ping	ping;
+extern char	*__progname;
 
-/* 
- * Clean all allocated memory and close all opened fd. Called on exit
- * */
-void clean_all() {
-	if (ping.sockfd) {
-		close(ping.sockfd);
+void	arg_err(const char *fmt, ...)
+{
+	va_list	ap;
+
+	va_start(ap, fmt);
+	fprintf(stderr, "%s: ", __progname);
+	if (fmt)
+	{
+		vfprintf(stderr, fmt, ap);
 	}
-	if (ping.icmp_pkt) {
-		free(ping.icmp_pkt);
-	}
+	fprintf(stderr, "\n");
+	va_end(ap);
 }
 

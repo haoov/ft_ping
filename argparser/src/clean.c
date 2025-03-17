@@ -5,24 +5,38 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: rasbbah <rsabbah@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/03/11 09:03:25 by rasbbah           #+#    #+#             */
-/*   Updated: 2025/03/17 11:37:41 by rasbbah          ###   ########.fr       */
+/*   Created: 2025/03/16 14:10:32 by rasbbah           #+#    #+#             */
+/*   Updated: 2025/03/17 10:07:55 by rasbbah          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../inc/ft_ping.h"
+#include "argparser.h"
 
-extern struct ping	ping;
+extern struct exparg	*explist;
 
-/* 
- * Clean all allocated memory and close all opened fd. Called on exit
- * */
-void clean_all() {
-	if (ping.sockfd) {
-		close(ping.sockfd);
+void	free_expargs()
+{
+	struct exparg	*args, *next;
+
+	args = explist;
+	while (args)
+	{
+		next = args->next;
+		free(args);
+		args = next;
 	}
-	if (ping.icmp_pkt) {
-		free(ping.icmp_pkt);
+}
+
+void	free_args(struct arg *args)
+{
+	struct arg	*next;
+
+	free_expargs();
+	while (args)
+	{
+		next = args->next;
+		free(args);
+		args = next;
 	}
 }
 

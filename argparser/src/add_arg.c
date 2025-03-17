@@ -1,28 +1,33 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   clean.c                                            :+:      :+:    :+:   */
+/*   add_arg.c                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: rasbbah <rsabbah@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/03/11 09:03:25 by rasbbah           #+#    #+#             */
-/*   Updated: 2025/03/17 11:37:41 by rasbbah          ###   ########.fr       */
+/*   Created: 2025/03/14 15:10:18 by rasbbah           #+#    #+#             */
+/*   Updated: 2025/03/14 15:47:59 by rasbbah          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../inc/ft_ping.h"
+#include "argparser.h"
 
-extern struct ping	ping;
-
-/* 
- * Clean all allocated memory and close all opened fd. Called on exit
+/* Add argument 'arg' at the end of list 'list'
+ * Return pointer to head of list
  * */
-void clean_all() {
-	if (ping.sockfd) {
-		close(ping.sockfd);
-	}
-	if (ping.icmp_pkt) {
-		free(ping.icmp_pkt);
-	}
-}
+struct arg	*add_arg(struct arg **list, struct arg *arg)
+{
+	struct arg	*cur;
 
+	if (!list)
+	{
+		return arg;
+	}
+	cur = *list;
+	while (cur->next)
+	{
+		cur = cur->next;
+	}
+	cur->next = arg;
+	return *list;
+}

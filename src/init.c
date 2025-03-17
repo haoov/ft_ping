@@ -6,11 +6,13 @@
 /*   By: rasbbah <rsabbah@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/11 09:01:56 by rasbbah           #+#    #+#             */
-/*   Updated: 2025/03/13 16:54:19 by rasbbah          ###   ########.fr       */
+/*   Updated: 2025/03/17 11:38:40 by rasbbah          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../inc/ft_ping.h"
+
+extern struct ping	ping;
 
 /*
  * Create raw socket and set input timeout
@@ -69,18 +71,41 @@ uint8_t *malloc_pkt_buffer(int size) {
 	return buffer;
 }
 
-void init(struct ping *ping, const char *hostname) {
+void	init_args(const char **argv)
+{
+	struct argparser	parser;
+
+	parser.args = NULL;
+	exparg("host", 0, NULL, STR_T);
+	exparg("help", '?', "help", BOOL_T);
+	exparg("verbose", 'v', "verbose", BOOL_T);
+	parser = parse_args(argv);
+	if (parser.err)
+	{
+		exit(EXIT_FAILURE);
+	}
+	if (get_arg(parser.args, "help"))
+	{
+		print_help();
+		exit(EXIT_SUCCESS);
+	}
+	ping.host = get_arg(parser.args, "host");
+	if (!ping.host)
+	{
+		errx(EXIT_FAILURE, "%s", ERR_NO_HOST);
+	}
+}
+
+void init(const char **argv) {
 	struct timeval	timeout;
 
 	timeout.tv_sec = 1;
 	timeout.tv_usec = 0;
-	memset(ping, 0, sizeof(struct ping));
 	signal(SIGINT, stop_program);
-	on_exit(clean_all, ping);
-	ping->pkt_size = ICMP_DEF_PKT_SIZE;
-	ping->hostname = hostname;
-	ping->sockfd = create_socket(timeout);
-	ping->dst = resolve_hostname(ping->hostname);
-	ping->icmp_pkt = malloc_pkt_buffer(ping->pkt_size);
+	init_args(argv);
+	ping.pkt_size = ICMP_DEF_PKT_SIZE;
+	ping.sockfd = create_socket(timeout);
+	ping.dst = resolve_hostname(ping.p_host);
+	ping.icmp_pkt = malloc_pkt_buffer(ping.pkt_size);
 }
 

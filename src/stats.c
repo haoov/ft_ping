@@ -6,11 +6,13 @@
 /*   By: rasbbah <rsabbah@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/11 09:24:01 by rasbbah           #+#    #+#             */
-/*   Updated: 2025/03/13 18:38:53 by rasbbah          ###   ########.fr       */
+/*   Updated: 2025/03/17 11:44:08 by rasbbah          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../inc/ft_ping.h"
+
+extern struct ping	ping;
 
 double reducef(double *arr, size_t size) {
 	double sum;
@@ -32,24 +34,24 @@ double compute_rttdev(double rtts[MAXRTTVAL], double avg, int npkt_sent) {
 	return sqrtf((1.0 / npkt_sent) * calc);
 }
 
-void ping_stats(struct ping *ping) {
+void ping_stats() {
 	double	rttdev, rttavg;
 
-	printf("--- %s ping statistics ---\n", ping->hostname);
+	printf("--- %s ping statistics ---\n", ping.p_host);
 	printf(
 		"%d packets transmitted, %d packets received, %.0f%% packet loss\n",
-		ping->npkt_sent,
-		ping->npkt_recv,
-		(1.0 - (double)(ping->npkt_recv / ping->npkt_sent)) * 100.0
+		ping.npkt_sent,
+		ping.npkt_recv,
+		(1.0 - (double)(ping.npkt_recv / ping.npkt_sent)) * 100.0
 	);
-	if (ping->npkt_recv) {
-		rttavg = reducef(ping->rtts, MAXRTTVAL) / ping->npkt_sent;
-		rttdev = compute_rttdev(ping->rtts, rttavg, ping->npkt_sent);
+	if (ping.npkt_recv) {
+		rttavg = reducef(ping.rtts, MAXRTTVAL) / ping.npkt_sent;
+		rttdev = compute_rttdev(ping.rtts, rttavg, ping.npkt_sent);
 		printf(
 			"round-trip min/avg/max/stddev = %.3f/%.3f/%.3f/%.3f ms\n",
-			ping->rttmin,
+			ping.rttmin,
 			rttavg,
-			ping->rttmax,
+			ping.rttmax,
 			rttdev
 		);
 	}
@@ -82,34 +84,34 @@ double get_rtt(uint8_t *data) {
 	return (n - t) / 1000.0;
 }
 
-void reply_stats(struct ping *ping, ssize_t size) {
+void reply_stats(uint8_t *buf, ssize_t size) {
 	struct iphdr	*iphdr;
 	struct icmphdr	*icmphdr;
 	int				iphdr_len;
 	double			rtt;
 
 	if (size == -1) {
-		printf("%s: %s\n", ping->hostname, ERR_TIMEO);
+		printf("%s: %s\n", ping.p_host, ERR_TIMEO);
 		return;
 	}
 	else if ((size_t)size < sizeof(struct iphdr)) {
-		printf("%s: %s\n", ping->hostname, ERR_SMALL);
+		printf("%s: %s\n", ping.p_host, ERR_SMALL);
 		return;
 	}
-	iphdr = (struct iphdr*)ping->icmp_pkt;
+	iphdr = (struct iphdr*)buf;
 	iphdr_len = iphdr->ihl * sizeof(int);
-	icmphdr = (struct icmphdr*)(ping->icmp_pkt + iphdr_len);
-	rtt = get_rtt(ping->icmp_pkt + iphdr_len + ICMP_HD_SIZE);
-	ping->rttmax = rtt > ping->rttmax ? rtt : ping->rttmax;
-	if (ping->seq == 1) {
-		ping->rttmin = rtt;
+	icmphdr = (struct icmphdr*)(buf + iphdr_len);
+	rtt = get_rtt(buf + iphdr_len + ICMP_HD_SIZE);
+	ping.rttmax = rtt > ping.rttmax ? rtt : ping.rttmax;
+	if (ping.seq == 1) {
+		ping.rttmin = rtt;
 	}
-	ping->rttmin = rtt < ping->rttmin ? rtt : ping->rttmin;
-	ping->rtts[ping->seq - 1] = rtt;
+	ping.rttmin = rtt < ping.rttmin ? rtt : ping.rttmin;
+	ping.rtts[ping.seq - 1] = rtt;
 	printf(
 		"%ld bytes from %s: icmp_seq=%d ttl=%d time=%.2f ms\n",
 		size - iphdr_len,
-		ping->hostname,
+		ping.p_host,
 		ntohs(icmphdr->un.echo.sequence),
 		iphdr->ttl,
 		rtt

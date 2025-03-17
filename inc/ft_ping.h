@@ -6,7 +6,7 @@
 /*   By: rasbbah <rsabbah@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/12 13:31:53 by rasbbah           #+#    #+#             */
-/*   Updated: 2025/03/13 18:12:59 by rasbbah          ###   ########.fr       */
+/*   Updated: 2025/03/17 11:44:49 by rasbbah          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,6 +31,7 @@
 #include <sys/time.h>
 #include <stdint.h>
 #include <math.h>
+#include "argparser.h"
 
 /* Errors */
 #define ERR_NO_HOST		"missing host operand"
@@ -52,31 +53,34 @@
 
 /* Types */
 
-typedef struct sockaddr	ping_addr;
+typedef struct sockaddr		ping_addr;
 
 struct ping {
-	const char	*hostname;
+	struct arg	*host;
+	#define p_host host->val.pval
 	int			sockfd;
 	ping_addr	dst;
 	uint8_t		*icmp_pkt;
 	int			pkt_size;
 	uint16_t	seq;
 	useconds_t	stime;
-	int		npkt_sent;
-	int		npkt_recv;
-	double	rttmin;
-	double	rttmax;
-	double	rtts[MAXRTTVAL];
+	int			npkt_sent;
+	int			npkt_recv;
+	double		rttmin;
+	double		rttmax;
+	double		rtts[MAXRTTVAL];
 };
 
 /* Functions declaration */
-void	init(struct ping *ping, const char *hostname);
-void	clean_all(int status, void *data);
+void	init(const char **argv);
 void	print_ping(const char *hostname, struct sockaddr dst, int data_size);
 void	stop_program(int sig);
-void	ping_stats(struct ping *ping);
+void	ping_stats();
 void	ping_echo(struct ping *ping);
 void	ping_reply(struct ping *ping);
-void	reply_stats(struct ping *ping, ssize_t size);
+void	reply_stats(uint8_t *buf, ssize_t size);
+void	print_help();
+
+void	clean_all();
 
 #endif
