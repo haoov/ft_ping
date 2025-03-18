@@ -6,35 +6,57 @@
 /*   By: rasbbah <rsabbah@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/15 20:14:21 by rasbbah           #+#    #+#             */
-/*   Updated: 2025/03/17 19:55:10 by rasbbah          ###   ########.fr       */
+/*   Updated: 2025/03/18 11:49:22 by rsabbah          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "argparser.h"
 
-const char	*get_strarg(struct arg *list, const char *name)
+double	get_darg(struct argparser *p, const char *name)
 {
-	while (list)
+	struct arg *args;
+
+	args = p->args;
+	while (args)
 	{
-		if (list->type == STR_T && !strcmp(list->name, name))
+		if (args->type == FLOAT_T && !strcmp(args->name, name))
 		{
-			return list->val.pval;
+			return args->val.dval;
 		}
-		list = list->next;
+		args = args->next;
+	}
+	return 0.0;
+}
+
+const char	*get_strarg(struct argparser *p, const char *name)
+{
+	struct arg	*args;
+
+	args = p->args;
+	while (args)
+	{
+		if (args->type == STR_T && !strcmp(args->name, name))
+		{
+			return args->val.pval;
+		}
+		args = args->next;
 	}
 	return NULL;
 }
 
-int	get_intarg(struct arg *list, const char *name)
+int	get_intarg(struct argparser *p, const char *name)
 {
-	while (list)
+	struct arg	*args;
+
+	args = p->args;
+	while (args)
 	{
-		if ((list->type == INT_T || list->type == BOOL_T) &&
-				!strcmp(list->name, name))
+		if ((args->type == INT_T || args->type == BOOL_T) &&
+				!strcmp(args->name, name))
 		{
-			return list->val.ival;
+			return args->val.ival;
 		}
-		list = list->next;
+		args = args->next;
 	}
 	return 0;
 }

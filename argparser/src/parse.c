@@ -6,7 +6,7 @@
 /*   By: rasbbah <rsabbah@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/15 19:48:48 by rasbbah           #+#    #+#             */
-/*   Updated: 2025/03/17 20:03:44 by rasbbah          ###   ########.fr       */
+/*   Updated: 2025/03/18 11:51:05 by rsabbah          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,26 +47,33 @@ struct arg	*get_opt(struct arg *args, const char *str)
 	return NULL;
 }
 
-int	get_int_value(const char *str, bool *err)
+int	get_num_value(struct arg *arg, const char *str)
 {
 	long	lval;
 	char	*endptr;
 
-	*err = false;
 	errno = 0;
-	lval = strtol(str, &endptr, 10);
+	lval = 0;
+	if (arg->type == INT_T)
+	{
+		lval = strtol(str, &endptr, 10);
+		arg->val.ival = (int)lval;
+	}
+	else
+	{
+		arg->val.dval = (double)strtof(str, &endptr);
+	}
 	if (errno || *endptr != '\0' || str == endptr ||
 		lval > (long)INT_MAX || lval < (long)INT_MIN)
 	{
-		*err = true;
+		return -1;
 	}
-	return (int)lval;
+	return 0;
 }
 
 int	get_optval(struct arg *arg, const char **av, int *i, size_t pos)
 {
 	const char	*sval;
-	bool		err;
 
 	if (arg->type == BOOL_T)
 	{
@@ -79,10 +86,9 @@ int	get_optval(struct arg *arg, const char **av, int *i, size_t pos)
 		arg_err("%s `%s`", PERR_REQARG, arg->name);
 		return -1;
 	}
-	if (arg->type == INT_T)
+	if (arg->type == INT_T || arg->type == FLOAT_T)
 	{
-		arg->val.ival = get_int_value(sval, &err);
-		if (err)
+		if (get_num_value(arg, sval) == -1)
 		{
 			arg_err("%s for %s `%s`", PERR_IVAL, arg->name, sval);
 			return -1;

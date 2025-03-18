@@ -6,7 +6,7 @@
 /*   By: rasbbah <rsabbah@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/12 13:31:53 by rasbbah           #+#    #+#             */
-/*   Updated: 2025/03/17 22:14:23 by rasbbah          ###   ########.fr       */
+/*   Updated: 2025/03/18 12:20:16 by rsabbah          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,6 +40,8 @@
 #define ERR_TOBIG		"value to big"
 #define ERR_MALLOC		"malloc error"
 #define ERR_INPKTSIZE	"invalid packet size"
+#define ERR_NOFLOOD		"cannot flood; minimal interval allowed for user is 2ms"
+#define ERR_BADINT		"bad interval value"
 
 #define ERR_TIMEO		"timeout"
 #define ERR_SMALL		"packet too small"
@@ -75,6 +77,7 @@ struct ping
 	int					npkt_recv;
 	int					count;
 	int					linger;
+	double				interval;
 	double				rttmin;
 	double				rttmax;
 	double				rtts[MAXRTTVAL];

@@ -6,7 +6,7 @@
 /*   By: rasbbah <rsabbah@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/14 15:07:56 by rasbbah           #+#    #+#             */
-/*   Updated: 2025/03/17 20:00:55 by rasbbah          ###   ########.fr       */
+/*   Updated: 2025/03/18 11:47:12 by rsabbah          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,13 +39,15 @@ enum argtype
 {
 	BOOL_T,
 	INT_T,
+	FLOAT_T,
 	STR_T
 };
 
 typedef union argval
 {
 	int			ival;
-	char	*pval;
+	char		*pval;
+	double		dval;
 } argval_t;
 
 /* Struct to store arguments */
@@ -76,8 +78,9 @@ struct argparser
 struct argparser	*new_parser();
 void				add_argument(struct argparser *p, char *name,
 									char sh, char *lg, int type, argval_t def);
-const char			*get_strarg(struct arg *list, const char *name);
-int					get_intarg(struct arg *list, const char *name);
+const char			*get_strarg(struct argparser *p, const char *name);
+int					get_intarg(struct argparser *p, const char *name);
+double				get_darg(struct argparser *p, const char *name);
 void				arg_err(const char *fmt, ...);
 void				parse_args(struct argparser *p, const char **av);
 void				free_args(struct arg *args);
