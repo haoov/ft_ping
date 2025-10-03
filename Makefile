@@ -1,40 +1,17 @@
-# Files
-TARGET	:= ft_ping
-SRCDIR	:= ./src
-OBJDIR	:= ./obj
-INCDIR	:= ./inc
-ARGPDIR	:= ./argparser
-SRCS	:= $(wildcard $(SRCDIR)/*.c)
-OBJS	:= $(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o,$(SRCS))
-ARGP	:= $(ARGPDIR)/bin/argparser.a
+TARGET:=ft_ping
 
-# Compiler
-CC		:= cc
-CFLAGS	:= -Wall -Wextra -Werror -g
-CINC	:= -I $(INCDIR) -I $(ARGPDIR)/inc
+SRC:=$(wildcard ./src/*.c)
+INC:=$(wildcard ./inc/*.h)
 
-# Rules
-all: $(TARGET)
+all: ft_ping
 
-$(TARGET): $(ARGP) $(OBJS)
-	$(CC) $(CFLAGS) $^ -o $@ -lm $(ARGP)
-
-$(ARGP) :
-	make -C $(ARGPDIR)
-
-$(OBJDIR)/%.o: $(SRCDIR)/%.c | $(OBJDIR)
-	$(CC) $(CFLAGS) $(CINC) -c $< -o $@
-
-$(OBJDIR) :
-	mkdir -p $@
+ft_ping: $(SRC)
+	gcc -Wall -Wextra -Werror -I ./inc $^ -o $(TARGET)
 
 clean:
-	make clean -C $(ARGPDIR)
-	rm -rf $(OBJDIR)
+	rm $(TARGET) 
 
 fclean: clean
-	make fclean -C $(ARGPDIR)
-	rm -rf $(TARGET)
 
 re: fclean all
 

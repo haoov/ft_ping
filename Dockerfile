@@ -1,19 +1,15 @@
-# Pull debian image
-FROM debian:latest
-
-# Install requiered packages
-RUN	apt update -y && apt install -y \
-	vim \
+FROM debian:trixie
+# Installing required tools
+RUN apt update -y && apt upgrade -y && apt install -y \
 	gcc \
-	clang \
 	make \
 	wget \
 	tar \
 	build-essential \
 	libncurses5-dev;
 
-# Install inetutils 2.0
-RUN	wget https://ftp.gnu.org/gnu/inetutils/inetutils-2.0.tar.xz && \
+# Downloading and installing inetutils-ping-2.0
+RUN wget https://ftp.gnu.org/gnu/inetutils/inetutils-2.0.tar.xz && \
 	tar -xvf inetutils-2.0.tar.xz && \
 	cd inetutils-2.0 && \
 	./configure && \
