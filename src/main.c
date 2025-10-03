@@ -37,5 +37,5 @@ int main(int argc, const char **argv) {
 		ping_error("missing host operand\n");
 	}
 	atexit(gc_free);
-	parse_args(argv);
+	parse_args(argc, argv);
 }

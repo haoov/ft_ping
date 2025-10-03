@@ -59,7 +59,6 @@ void add_host(const char *host) {
 	if (!new) {
 		ping_error("malloc error\n");
 	}
-	gc_add((void*)new);
 	new->str = host;
 	new->next = NULL;
 
@@ -68,45 +67,44 @@ void add_host(const char *host) {
 	}
 	else {
 		struct strlist *elem = ping.hosts;
-		while (elem) {
+		while (elem->next) {
 			elem = elem->next;
 		}
 		elem->next = new;
 	}
 }
 
-void parse_shopt(const char *str, const char *val) {
-	struct opt *opt;
-	for (int i = 0; str[i]; ++i) {
-		opt = get_opt(NULL, str[i]);
-		if (!opt) {
-			ping_error("unrecognized option: `-%c`\n", str[i]);
-		}
-		if (!val && opt->type != boolean) {
-			ping_error("option requires an argument `-%c`\n", str[i]);
-		}
-		if (set_opt_val(opt, val) != 0) {
-			ping_error("-%c: invalid value: %s\n", str[i], val);
-		}
-	}
-}
-
-void parse_args(const char **argv) {
-	for (int i = 1; argv[i]; ++i) {
+void parse_args(int argc, const char **argv) {
+	for (int i = 1; i < argc; ++i) {
 		const char	*arg = argv[i];
 		size_t		len = strlen(arg);
 
 		if (arg[0] == '-' && len >= 2) {
 			// arg is an option
+			struct opt	*opt;
 			const char	*val = argv[i + 1];
 
 			if (arg[1] != '-') {
 				// short format '-...'
-				parse_shopt(&arg[1], val);
+				for (int j = 1; arg[j]; ++j) {
+					opt = get_opt(NULL, arg[j]);
+					if (!opt) {
+						ping_error("unrecognized option: `-%c`\n", arg[j]);
+					}
+					if (!val && opt->type != boolean) {
+						ping_error("option requires an argument `-%c`\n", arg[j]);
+					}
+					if (opt->type != boolean) {
+						++i;
+					}
+					if (set_opt_val(opt, val) != 0) {
+						ping_error("-%c: invalid value: %s\n", arg[j], val);
+					}
+				}
 			}
 			else if (len > 2) {
 				// long format '--...'
-				struct opt	*opt = get_opt(&arg[2], 0);
+				opt = get_opt(&arg[2], 0);
 
 				if (!opt) {
 					ping_error("unrecognized option: `%s`\n", arg);
@@ -114,7 +112,10 @@ void parse_args(const char **argv) {
 				if (!val && opt->type != boolean) {
 					ping_error("option requires an argument `%s`\n", arg);
 				}
-				if (set_opt_val(opt, argv[i + 1]) != 0) {
+				if (opt->type != boolean) {
+					++i;
+				}
+				if (set_opt_val(opt, val) != 0) {
 					ping_error("%s: invalid value: %s\n", arg, val);
 				}
 			}

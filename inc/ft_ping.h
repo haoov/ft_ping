@@ -41,6 +41,6 @@ struct ping {
 void		ping_error(const char *fmt, ...);
 void		gc_add(void *ptr);
 void		gc_free();
-void		parse_args(const char **argv);
+void		parse_args(int argc, const char **argv);
 
 #endif
