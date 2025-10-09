@@ -17,14 +17,14 @@ struct ping ping = {
 		{"tos", 'T', number, .val.intgr = 0},
 		{"verbose", 'v', boolean, .val.intgr = false},
 		{"timeout", 'w', number, .val.dbl = 0.0},
-		{"linger", 'W', number, .val.dbl = 0.0},
+		{"linger", 'W', number, .val.dbl = 10.0},
 		{"help", '?', boolean, .val.intgr = false},
 		{"usage", 0, boolean, .val.intgr = false},
 		{"version", 'V', boolean, .val.intgr = false},
 		{"flood", 'f', boolean, .val.intgr = false},
 		{"ip-timestamp", 0, string, .val.ptr = NULL},
 		{"preload", 'l', number, .val.intgr = 0},
-		{"pattern", 'p', string, .val.ptr = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"},
+		{"pattern", 'p', string, .val.ptr = NULL},
 		{"quiet", 'q', boolean, .val.intgr = false},
 		{"route", 'R', boolean, .val.intgr = false},
 		{"size", 's', number, .val.intgr = 56},
@@ -33,9 +33,11 @@ struct ping ping = {
 };
 
 int main(int argc, const char **argv) {
-	if (argc == 1) {
+	atexit(ping_exit);
+	parse_args(argc, argv);
+	if (!ping.hosts) {
 		ping_error("missing host operand\n");
 	}
-	atexit(gc_free);
-	parse_args(argc, argv);
+	init_socket();
+	ft_ping();
 }

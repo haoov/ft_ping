@@ -91,10 +91,13 @@ void parse_args(int argc, const char **argv) {
 					if (!opt) {
 						ping_error("unrecognized option: `-%c`\n", arg[j]);
 					}
-					if (!val && opt->type != boolean) {
-						ping_error("option requires an argument `-%c`\n", arg[j]);
-					}
 					if (opt->type != boolean) {
+						if (arg[j + 1]) {
+							ping_error("-%c invalid value: %c\n", arg[j], arg[j + 1]);
+						}
+						if (!val) {
+							ping_error("option requires an argument `-%c`\n", arg[j]);
+						}
 						++i;
 					}
 					if (set_opt_val(opt, val) != 0) {

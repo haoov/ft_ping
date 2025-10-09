@@ -29,3 +29,10 @@ void gc_add(void *ptr) {
 		gc = new;
 	}
 }
+
+void ping_exit() {
+	gc_free();
+	if (ping.socket) {
+		close(ping.socket);
+	}
+}

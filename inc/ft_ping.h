@@ -7,6 +7,12 @@
 #include "string.h"
 #include "errno.h"
 #include "stdio.h"
+#include <stdint.h>
+#include <sys/socket.h>
+#include <netinet/ip_icmp.h>
+#include <sys/types.h>
+#include <netdb.h>
+#include <arpa/inet.h>
 
 struct ptrlist {
 	void			*ptr;
@@ -34,13 +40,19 @@ struct strlist {
 };
 
 struct ping {
-	struct strlist	*hosts;
-	struct opt		opts[26];
+	struct strlist		*hosts;
+	struct opt			opts[26];
+	int					socket;
+	uint8_t				*sendbuf;
+	struct sockaddr_in	addr;
 };
 
 void		ping_error(const char *fmt, ...);
 void		gc_add(void *ptr);
-void		gc_free();
 void		parse_args(int argc, const char **argv);
+struct opt	*get_opt(const char *lg, const char sh);
+void		init_socket();
+void		ping_exit();
+void		ft_ping();
 
 #endif
