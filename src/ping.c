@@ -41,15 +41,55 @@ uint16_t compute_cheksum(uint16_t *addr, int count) {
 	return (~sum);
 }
 
+void create_icmp_packet(uint16_t seq) {
+	struct icmp *pkt = (struct icmp *)ping.sendbuf;
+	int size = get_opt("size", 0)->val.intgr;
+
+	pkt->icmp_cksum = 0;
+	if (get_opt("echo", 0)->val.intgr == true) {
+		pkt->icmp_type = ICMP_ECHO;
+		pkt->icmp_code = 0;
+		pkt->icmp_id = getpid();
+		pkt->icmp_seq = seq;
+		char *pattern = get_opt("pattern", 0)->val.ptr;
+		if (pattern) {
+			int i = 0;
+			size_t len = strlen(pattern);
+			while (i < size) {
+				memcpy(pkt->icmp_data + i, pattern, len);
+				i += len;
+			}
+		}
+		else {
+			memset(pkt->icmp_data, 0x42, size - sizeof(struct icmphdr));
+		}
+	}
+	pkt->icmp_cksum = compute_cheksum((uint16_t*)ping.sendbuf, size);
+
+	// Debug
+	printf("icmp packet:\n");
+	printf("\ttype: %d\n", pkt->icmp_type);
+	printf("\tcode: %d\n", pkt->icmp_code);
+	printf("\tid: %d\n", pkt->icmp_id);
+	printf("\tseq: %d\n", pkt->icmp_seq);
+	printf("\tdata: ");
+	for (int i = 0; i < size; ++i) {
+		printf("%c", pkt->icmp_data[i]);
+	}
+	printf("\n\tcheck_sum: %d\n", pkt->icmp_cksum);
+}
+
 void ft_ping() {
 	struct strlist *host = ping.hosts;
 	while (host) {
 		resolve_host(host->str);
+		// Debug
 		printf(
 			"Host: %s Address: %s\n",
 			host->str,
 			inet_ntoa(((struct sockaddr_in)ping.addr).sin_addr)
 		);
+		create_icmp_packet(1);
 		host = host->next;
 	}
 }

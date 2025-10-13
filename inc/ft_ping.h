@@ -52,6 +52,7 @@ void		gc_add(void *ptr);
 void		parse_args(int argc, const char **argv);
 struct opt	*get_opt(const char *lg, const char sh);
 void		init_socket();
+void		init_buf();
 void		ping_exit();
 void		ft_ping();
 

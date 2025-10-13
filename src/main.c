@@ -39,5 +39,6 @@ int main(int argc, const char **argv) {
 		ping_error("missing host operand\n");
 	}
 	init_socket();
+	init_buf();
 	ft_ping();
 }
