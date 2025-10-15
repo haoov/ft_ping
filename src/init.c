@@ -24,4 +24,5 @@ void init_buf() {
 	if (!ping.sendbuf) {
 		ping_error("%s\n", strerror(errno));
 	}
+	gc_add(ping.sendbuf);
 }

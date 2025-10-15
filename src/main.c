@@ -1,13 +1,8 @@
 #include "../inc/ft_ping.h"
 
 struct ping ping = {
-	.hosts = NULL,
+	.host_count = 0,
 	.opts = {
-		{"address", 0, boolean, .val.intgr = false},
-		{"echo", 0, boolean, .val.intgr = true},
-		{"mask", 0, boolean, .val.intgr = false},
-		{"timestamp", 0, boolean, .val.intgr = false},
-		{"type", 't', string, .val.ptr = NULL},
 		{"count", 'c', number, .val.intgr = 3},
 		{"debug", 'd', boolean, .val.intgr = false},
 		{"interval", 'i', number, .val.dbl = 1.0},
@@ -35,7 +30,7 @@ struct ping ping = {
 int main(int argc, const char **argv) {
 	atexit(ping_exit);
 	parse_args(argc, argv);
-	if (!ping.hosts) {
+	if (!ping.host_count) {
 		ping_error("missing host operand\n");
 	}
 	init_socket();

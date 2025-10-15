@@ -54,24 +54,12 @@ void add_host(const char *host) {
 	if (!host) {
 		return;
 	}
+	if (ping.host_count == MAX_HOST) {
+		ping_error("too many hosts\n");
+	}
 
-	struct strlist *new = malloc(sizeof(struct strlist));
-	if (!new) {
-		ping_error("malloc error\n");
-	}
-	new->str = host;
-	new->next = NULL;
-
-	if (!ping.hosts) {
-		ping.hosts = new;
-	}
-	else {
-		struct strlist *elem = ping.hosts;
-		while (elem->next) {
-			elem = elem->next;
-		}
-		elem->next = new;
-	}
+	ping.hosts[ping.host_count] = (char*)host;
+	++ping.host_count;
 }
 
 void parse_args(int argc, const char **argv) {

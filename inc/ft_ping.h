@@ -14,6 +14,15 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 
+// Maximum number of host to ping
+#define MAX_HOST 16
+
+// Options number
+#define OPT_NUM 26
+
+// Max packets to keep timing of
+#define	MAX_TIMING_PKT 256
+
 struct ptrlist {
 	void			*ptr;
 	struct ptrlist	*next;
@@ -34,14 +43,22 @@ struct opt {
 	} val;
 };
 
-struct strlist {
-	const char		*str;
-	struct strlist	*next;
+struct stats {
+	struct {
+		struct timeval	send_time;
+		uint8_t			flags;
+	} timing[MAX_TIMING_PKT];
+
+	uint16_t	seq;
+	uint64_t	nsend;
+	uint64_t	nrecv;
 };
 
 struct ping {
-	struct strlist		*hosts;
-	struct opt			opts[26];
+	char				*hosts[MAX_HOST];
+	uint8_t				host_count;
+	struct stats		stats;
+	struct opt			opts[OPT_NUM];
 	int					socket;
 	uint8_t				*sendbuf;
 	struct sockaddr_in	addr;

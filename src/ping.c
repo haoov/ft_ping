@@ -22,6 +22,13 @@ void resolve_host(const char *host) {
 	}
 	memcpy(&ping.addr, res->ai_addr, sizeof(struct sockaddr));
 	freeaddrinfo(res);
+
+	// Debug
+	printf(
+		"Host: %s Address: %s\n",
+		host,
+		inet_ntoa(((struct sockaddr_in)ping.addr).sin_addr)
+	);
 }
 
 uint16_t compute_cheksum(uint16_t *addr, int count) {
@@ -46,24 +53,23 @@ void create_icmp_packet(uint16_t seq) {
 	int size = get_opt("size", 0)->val.intgr;
 
 	pkt->icmp_cksum = 0;
-	if (get_opt("echo", 0)->val.intgr == true) {
-		pkt->icmp_type = ICMP_ECHO;
-		pkt->icmp_code = 0;
-		pkt->icmp_id = getpid();
-		pkt->icmp_seq = seq;
-		char *pattern = get_opt("pattern", 0)->val.ptr;
-		if (pattern) {
-			int i = 0;
-			size_t len = strlen(pattern);
-			while (i < size) {
-				memcpy(pkt->icmp_data + i, pattern, len);
-				i += len;
-			}
-		}
-		else {
-			memset(pkt->icmp_data, 0x42, size - sizeof(struct icmphdr));
+	pkt->icmp_type = ICMP_ECHO;
+	pkt->icmp_code = 0;
+	pkt->icmp_id = getpid();
+	pkt->icmp_seq = seq;
+	char *pattern = get_opt("pattern", 0)->val.ptr;
+	if (pattern) {
+		int i = 0;
+		size_t len = strlen(pattern);
+		while (i < size) {
+			memcpy(pkt->icmp_data + i, pattern, len);
+			i += len;
 		}
 	}
+	else {
+		memset(pkt->icmp_data, 0x42, size - sizeof(struct icmphdr));
+	}
+
 	pkt->icmp_cksum = compute_cheksum((uint16_t*)ping.sendbuf, size);
 
 	// Debug
@@ -80,16 +86,12 @@ void create_icmp_packet(uint16_t seq) {
 }
 
 void ft_ping() {
-	struct strlist *host = ping.hosts;
-	while (host) {
-		resolve_host(host->str);
-		// Debug
-		printf(
-			"Host: %s Address: %s\n",
-			host->str,
-			inet_ntoa(((struct sockaddr_in)ping.addr).sin_addr)
-		);
-		create_icmp_packet(1);
-		host = host->next;
+	for (int i = 0; i < ping.host_count; ++i) {
+		char *host = ping.hosts[i];
+
+		ping.stats.seq = 0;
+		resolve_host(host);
+		create_icmp_packet(ping.stats.seq + 1);
+
 	}
 }
