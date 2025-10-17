@@ -1,5 +1,4 @@
 #include "../inc/ft_ping.h"
-#include <bits/types/struct_timeval.h>
 
 extern struct ping ping;
 
@@ -62,9 +61,15 @@ void create_icmp_packet(uint16_t seq) {
 	if (pattern) {
 		int i = 0;
 		size_t len = strlen(pattern);
-		while (i < size) {
-			memcpy(pkt->icmp_data + i, pattern, len);
-			i += len;
+
+		if ((int)len > size) {
+			memcpy(pkt->icmp_data, pattern, size);
+		}
+		else {
+			while (i < size) {
+				memcpy(pkt->icmp_data + i, pattern, len);
+				i += len;
+			}
 		}
 	}
 	else {
@@ -72,9 +77,28 @@ void create_icmp_packet(uint16_t seq) {
 	}
 
 	pkt->icmp_cksum = compute_cheksum((uint16_t*)ping.sendbuf, size);
+}
+
+void send_packet() {
+	size_t buflen = get_opt("size", 0)->val.intgr + sizeof (struct icmphdr);
+	socklen_t addrlen = sizeof (struct sockaddr);
+	ssize_t n;
+	struct timeval *time = &ping.stats.timing[ping.stats.seq % MAX_TIMING_PKT].send_time;
+
+	gettimeofday(time, NULL);
+	n = sendto(ping.socket, ping.sendbuf, buflen, 0, (struct sockaddr*)&ping.addr, addrlen);
+	if (n == -1) {
+		ping_error("%s\n", strerror(errno));
+	}
+
+	++ping.stats.nsend;
 
 	// Debug
-	printf("icmp packet:\n");
+	struct icmp *pkt = (struct icmp*)ping.sendbuf;
+	int size = get_opt("size", 0)->val.intgr;
+	printf("%zd bytes sent\n", n);
+
+	printf("icmp packet sent:\n");
 	printf("\ttype: %d\n", pkt->icmp_type);
 	printf("\tcode: %d\n", pkt->icmp_code);
 	printf("\tid: %d\n", pkt->icmp_id);
@@ -86,20 +110,32 @@ void create_icmp_packet(uint16_t seq) {
 	printf("\n\tcheck_sum: %d\n", pkt->icmp_cksum);
 }
 
-void send_packet() {
-	size_t buflen = get_opt("size", 0)->val.intgr + sizeof (struct icmphdr);
-	socklen_t addrlen = sizeof (ping.addr);
+void receive_packet() {
+	size_t buflen = get_opt("size", 0)->val.intgr + sizeof (struct icmphdr) + sizeof (struct iphdr);
+	socklen_t addrlen = sizeof (struct sockaddr);
 	ssize_t n;
-	struct timeval *time = &ping.stats.timing[ping.stats.seq - 1 % MAX_TIMING_PKT].send_time;
-
-	gettimeofday(time, NULL);
-	n = sendto(ping.socket, ping.sendbuf, buflen, 0, (struct sockaddr*)&ping.addr, addrlen);
-	if (n == -1) {
+	
+	memset(ping.recvbuf, 0, buflen);
+	n = recvfrom(ping.socket, ping.recvbuf, buflen, 0, (struct sockaddr*)&ping.addr, &addrlen);
+	if (n == -1 && errno != EAGAIN && errno != EWOULDBLOCK) {
 		ping_error("%s\n", strerror(errno));
 	}
+	printf("%zd bytes received\n", n);
 
-	++ping.stats.nsend;
-	printf("%zd bytes sent\n", n);
+	// Debug
+	int size = get_opt("size", 0)->val.intgr;
+	struct icmp *pkt = (struct icmp*)(ping.recvbuf + sizeof (struct iphdr));
+
+	printf("icmp packet received:\n");
+	printf("\ttype: %d\n", pkt->icmp_type);
+	printf("\tcode: %d\n", pkt->icmp_code);
+	printf("\tid: %d\n", pkt->icmp_id);
+	printf("\tseq: %d\n", pkt->icmp_seq);
+	printf("\tdata: ");
+	for (int i = 0; i < size; ++i) {
+		printf("%c", pkt->icmp_data[i]);
+	}
+	printf("\n\tcheck_sum: %d\n", pkt->icmp_cksum);
 }
 
 void ft_ping() {
@@ -112,5 +148,7 @@ void ft_ping() {
 		resolve_host(host);
 		create_icmp_packet(ping.stats.seq + 1);
 		send_packet();
+		receive_packet();
+		sleep(1);
 	}
 }

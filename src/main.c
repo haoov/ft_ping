@@ -2,6 +2,8 @@
 
 struct ping ping = {
 	.host_count = 0,
+	.sendbuf = NULL,
+	.recvbuf = NULL,
 	.opts = {
 		{"count", 'c', number, .val.intgr = 3},
 		{"debug", 'd', boolean, .val.intgr = false},
@@ -24,7 +26,7 @@ struct ping ping = {
 		{"route", 'R', boolean, .val.intgr = false},
 		{"size", 's', number, .val.intgr = 56},
 		{NULL, 0, 0, .val.intgr = 0}
-	}
+	},
 };
 
 int main(int argc, const char **argv) {

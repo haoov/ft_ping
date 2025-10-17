@@ -1,7 +1,7 @@
 #include "../inc/ft_ping.h"
 
-struct ptrlist *gc = NULL;
 extern struct ping ping;
+struct ptrlist *gc = NULL;
 
 void gc_free() {
 	struct ptrlist *elem, *next;

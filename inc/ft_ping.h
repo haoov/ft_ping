@@ -10,6 +10,7 @@
 #include <stdint.h>
 #include <sys/socket.h>
 #include <netinet/ip_icmp.h>
+#include <netinet/ip.h>
 #include <sys/types.h>
 #include <netdb.h>
 #include <arpa/inet.h>
@@ -62,6 +63,7 @@ struct ping {
 	struct opt			opts[OPT_NUM];
 	int					socket;
 	uint8_t				*sendbuf;
+	uint8_t				*recvbuf;
 	struct sockaddr_in	addr;
 };
 

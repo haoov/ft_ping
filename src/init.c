@@ -25,4 +25,9 @@ void init_buf() {
 		ping_error("%s\n", strerror(errno));
 	}
 	gc_add(ping.sendbuf);
+	ping.recvbuf = malloc(size + sizeof(struct icmphdr) + sizeof (struct iphdr));
+	if (!ping.recvbuf) {
+		ping_error("%s\n", strerror(errno));
+	}
+	gc_add(ping.recvbuf);
 }
