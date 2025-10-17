@@ -13,6 +13,7 @@
 #include <sys/types.h>
 #include <netdb.h>
 #include <arpa/inet.h>
+#include <sys/time.h>
 
 // Maximum number of host to ping
 #define MAX_HOST 16

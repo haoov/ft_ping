@@ -1,4 +1,5 @@
 #include "../inc/ft_ping.h"
+#include <bits/types/struct_timeval.h>
 
 extern struct ping ping;
 
@@ -85,13 +86,31 @@ void create_icmp_packet(uint16_t seq) {
 	printf("\n\tcheck_sum: %d\n", pkt->icmp_cksum);
 }
 
+void send_packet() {
+	size_t buflen = get_opt("size", 0)->val.intgr + sizeof (struct icmphdr);
+	socklen_t addrlen = sizeof (ping.addr);
+	ssize_t n;
+	struct timeval *time = &ping.stats.timing[ping.stats.seq - 1 % MAX_TIMING_PKT].send_time;
+
+	gettimeofday(time, NULL);
+	n = sendto(ping.socket, ping.sendbuf, buflen, 0, (struct sockaddr*)&ping.addr, addrlen);
+	if (n == -1) {
+		ping_error("%s\n", strerror(errno));
+	}
+
+	++ping.stats.nsend;
+	printf("%zd bytes sent\n", n);
+}
+
 void ft_ping() {
 	for (int i = 0; i < ping.host_count; ++i) {
 		char *host = ping.hosts[i];
 
 		ping.stats.seq = 0;
+		ping.stats.nsend = 0;
+		ping.stats.nrecv = 0;
 		resolve_host(host);
 		create_icmp_packet(ping.stats.seq + 1);
-
+		send_packet();
 	}
 }
