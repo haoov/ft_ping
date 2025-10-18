@@ -6,7 +6,7 @@ INC:=$(wildcard ./inc/*.h)
 all: ft_ping
 
 ft_ping: $(SRC)
-	gcc -Wall -Wextra -Werror -I ./inc $^ -o $(TARGET)
+	gcc -Wall -Wextra -Werror -I ./inc $^ -o $(TARGET) -lm
 
 clean:
 	rm $(TARGET) 

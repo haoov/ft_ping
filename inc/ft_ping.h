@@ -15,6 +15,7 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 #include <sys/time.h>
+#include <math.h>
 
 // Maximum number of host to ping
 #define MAX_HOST 16
@@ -51,9 +52,16 @@ struct stats {
 		uint8_t			flags;
 	} timing[MAX_TIMING_PKT];
 
+	uint64_t	ttl;
+
 	uint16_t	seq;
 	uint64_t	nsend;
 	uint64_t	nrecv;
+
+	double		tmin;
+	double		tmax;
+	double		tsum;
+	double		tsumsq;
 };
 
 struct ping {

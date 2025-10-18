@@ -22,13 +22,6 @@ void resolve_host(const char *host) {
 	}
 	memcpy(&ping.addr, res->ai_addr, sizeof(struct sockaddr));
 	freeaddrinfo(res);
-
-	// Debug
-	printf(
-		"Host: %s Address: %s\n",
-		host,
-		inet_ntoa(((struct sockaddr_in)ping.addr).sin_addr)
-	);
 }
 
 uint16_t compute_cheksum(uint16_t *addr, int count) {
@@ -48,7 +41,7 @@ uint16_t compute_cheksum(uint16_t *addr, int count) {
 	return (~sum);
 }
 
-void create_icmp_packet(uint16_t seq) {
+void create_icmp_packet() {
 	struct icmp *pkt = (struct icmp *)ping.sendbuf;
 	int data_size = get_opt("size", 0)->val.intgr;
 	int total_size = data_size + sizeof (struct icmphdr);
@@ -57,7 +50,7 @@ void create_icmp_packet(uint16_t seq) {
 	pkt->icmp_type = ICMP_ECHO;
 	pkt->icmp_code = 0;
 	pkt->icmp_id = getpid();
-	pkt->icmp_seq = seq;
+	pkt->icmp_seq = ping.stats.seq;
 	char *pattern = get_opt("pattern", 0)->val.ptr;
 	if (pattern) {
 		int i = 0;
@@ -93,25 +86,9 @@ void send_packet() {
 	}
 
 	++ping.stats.nsend;
-
-	// Debug
-	struct icmp *pkt = (struct icmp*)ping.sendbuf;
-	int size = get_opt("size", 0)->val.intgr;
-	printf("%zd bytes sent\n", n);
-
-	printf("icmp packet sent:\n");
-	printf("\ttype: %d\n", pkt->icmp_type);
-	printf("\tcode: %d\n", pkt->icmp_code);
-	printf("\tid: %d\n", pkt->icmp_id);
-	printf("\tseq: %d\n", pkt->icmp_seq);
-	printf("\tdata: ");
-	for (int i = 0; i < size; ++i) {
-		printf("%c", pkt->icmp_data[i]);
-	}
-	printf("\n\tcheck_sum: %d\n", pkt->icmp_cksum);
 }
 
-void receive_packet() {
+int receive_packet() {
 	size_t buflen = get_opt("size", 0)->val.intgr + sizeof (struct icmphdr) + sizeof (struct iphdr);
 	socklen_t addrlen = sizeof (struct sockaddr);
 	ssize_t n;
@@ -121,35 +98,119 @@ void receive_packet() {
 	if (n == -1 && errno != EAGAIN && errno != EWOULDBLOCK) {
 		ping_error("%s\n", strerror(errno));
 	}
-	printf("%zd bytes received\n", n);
+	++ping.stats.nrecv;
+	return n;
+}
 
-	// Debug
-	int size = get_opt("size", 0)->val.intgr;
-	struct icmp *pkt = (struct icmp*)(ping.recvbuf + sizeof (struct iphdr));
+void ping_echo_reply(int size) {
+	struct ip *iphdr = (struct ip *)ping.recvbuf;
+	int iphdrlen = iphdr->ip_hl * 4;
+	struct icmp *pkt = (struct icmp *)(ping.recvbuf + iphdrlen);
+	struct timeval send_time, recv_time;
+	double rtt;
+	int data_len = size - iphdrlen;
 
-	printf("icmp packet received:\n");
-	printf("\ttype: %d\n", pkt->icmp_type);
-	printf("\tcode: %d\n", pkt->icmp_code);
-	printf("\tid: %d\n", pkt->icmp_id);
-	printf("\tseq: %d\n", pkt->icmp_seq);
-	printf("\tdata: ");
-	for (int i = 0; i < size; ++i) {
-		printf("%c", pkt->icmp_data[i]);
+	gettimeofday(&recv_time, NULL);
+
+	send_time = ping.stats.timing[pkt->icmp_seq % MAX_TIMING_PKT].send_time;
+	
+	rtt = (recv_time.tv_sec - send_time.tv_sec) * 1000.0;
+	rtt += (recv_time.tv_usec - send_time.tv_usec) / 1000.0;
+
+	ping.stats.tsum += rtt;
+	ping.stats.tsumsq += rtt * rtt;
+
+	if (ping.stats.tmin == 0 || ping.stats.tmin > rtt) {
+		ping.stats.tmin = rtt;
 	}
-	printf("\n\tcheck_sum: %d\n", pkt->icmp_cksum);
+	ping.stats.tmax = ping.stats.tmax < rtt ? rtt : ping.stats.tmax;
+
+	printf("%d bytes from %s: icmp_seq=%u ttl=%d time=%.3f ms\n",
+		data_len,
+		inet_ntoa(ping.addr.sin_addr),
+		pkt->icmp_seq,
+		iphdr->ip_ttl,
+		rtt
+	);
+}
+
+void parse_packet(int size) {
+	struct ip *iphdr = (struct ip *)ping.recvbuf;
+
+	if (iphdr->ip_v != 4) {
+		return;
+	}
+
+	ping_echo_reply(size);
+}
+
+void ping_stats(char *host) {
+	struct stats s = ping.stats;
+	double avg, mdev, variance, lost_pct;
+
+	printf("--- %s ping statistics ---\n", host);
+
+	if (ping.stats.nsend > 0) {
+		lost_pct = ((double)(s.nsend - s.nrecv) / s.nsend) * 100.0;
+	}
+	else {
+		lost_pct = 0.0;
+	}
+
+	printf ("%lu packets transmitted, %lu packets received, %.0f%% packet loss\n",
+		 s.nsend,
+		 s.nrecv,
+		 lost_pct
+	);
+
+	if (s.nrecv > 0) {
+		avg = s.tsum / s.nrecv;
+
+		if (s.nrecv > 1) {
+			variance = (s.tsumsq / s.nrecv) - (avg * avg);
+
+			if (variance < 0.0) {
+				variance = 0.0;
+			}
+
+			mdev = sqrt(variance);
+		}
+		else {
+			mdev = 0.0;
+		}
+		
+		printf("rtt min/avg/max/mdev = %.3f/%.3f/%.3f/%.3f ms\n",
+			s.tmin,
+			avg,
+			s.tmax,
+			mdev
+		);
+	}
 }
 
 void ft_ping() {
 	for (int i = 0; i < ping.host_count; ++i) {
 		char *host = ping.hosts[i];
+		int n;
 
-		ping.stats.seq = 0;
-		ping.stats.nsend = 0;
-		ping.stats.nrecv = 0;
+		memset(&ping.stats, 0, sizeof (ping.stats));
+		ping.stats.seq = 1;
 		resolve_host(host);
-		create_icmp_packet(ping.stats.seq + 1);
+		printf("PING %s (%s) %d bytes of data.\n",
+			host,
+			inet_ntoa(ping.addr.sin_addr),
+			get_opt("size", 0)->val.intgr
+		);
+
+		// Start loop
+		create_icmp_packet();
 		send_packet();
-		receive_packet();
+		n = receive_packet();
+		parse_packet(n);
 		sleep(1);
+		++ping.stats.seq;
+		// End loop
+
+		ping_stats(host);
 	}
 }
