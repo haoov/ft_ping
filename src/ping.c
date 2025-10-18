@@ -50,7 +50,8 @@ uint16_t compute_cheksum(uint16_t *addr, int count) {
 
 void create_icmp_packet(uint16_t seq) {
 	struct icmp *pkt = (struct icmp *)ping.sendbuf;
-	int size = get_opt("size", 0)->val.intgr;
+	int data_size = get_opt("size", 0)->val.intgr;
+	int total_size = data_size + sizeof (struct icmphdr);
 
 	pkt->icmp_cksum = 0;
 	pkt->icmp_type = ICMP_ECHO;
@@ -62,21 +63,21 @@ void create_icmp_packet(uint16_t seq) {
 		int i = 0;
 		size_t len = strlen(pattern);
 
-		if ((int)len > size) {
-			memcpy(pkt->icmp_data, pattern, size);
+		if ((int)len > data_size) {
+			memcpy(pkt->icmp_data, pattern, data_size);
 		}
 		else {
-			while (i < size) {
+			while (i < data_size) {
 				memcpy(pkt->icmp_data + i, pattern, len);
 				i += len;
 			}
 		}
 	}
 	else {
-		memset(pkt->icmp_data, 0x42, size - sizeof(struct icmphdr));
+		memset(pkt->icmp_data, 0x42, data_size);
 	}
 
-	pkt->icmp_cksum = compute_cheksum((uint16_t*)ping.sendbuf, size);
+	pkt->icmp_cksum = compute_cheksum((uint16_t*)ping.sendbuf, total_size);
 }
 
 void send_packet() {
