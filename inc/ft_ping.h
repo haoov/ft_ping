@@ -77,11 +77,15 @@ struct ping {
 
 void		ping_error(const char *fmt, ...);
 void		gc_add(void *ptr);
-void		parse_args(int argc, const char **argv);
-struct opt	*get_opt(const char *lg, const char sh);
-void		init_socket();
-void		init_buf();
+void		parse_args(struct ping *p, int argc, const char **argv);
+struct opt	*get_opt(struct opt *opts, const char *lg, const char sh);
 void		ping_exit();
-void		ft_ping();
+void		ft_ping(struct ping *p);
+uint16_t	compute_cheksum(uint16_t *addr, int count);
+void		resolve_host(struct ping *p, const char *host);
+void		icmp_echo_request(struct ping *p);
+void		icmp_response(struct ping *p);
+void		ping_stats(char *host, struct stats s);
+void		ping_init(struct ping *p);
 
 #endif

@@ -1,6 +1,6 @@
 #include "../inc/ft_ping.h"
 
-struct ping ping = {
+struct ping p = {
 	.host_count = 0,
 	.sendbuf = NULL,
 	.recvbuf = NULL,
@@ -31,11 +31,10 @@ struct ping ping = {
 
 int main(int argc, const char **argv) {
 	atexit(ping_exit);
-	parse_args(argc, argv);
-	if (!ping.host_count) {
+	parse_args(&p, argc, argv);
+	if (!p.host_count) {
 		ping_error("missing host operand\n");
 	}
-	init_socket();
-	init_buf();
-	ft_ping();
+	ping_init(&p);
+	ft_ping(&p);
 }

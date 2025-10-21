@@ -1,8 +1,6 @@
 #include "../inc/ft_ping.h"
 #include <inttypes.h>
 
-extern struct ping ping;
-
 bool is_float(const char *val) {
 	if (strchr(val, '.')) {
 		return true;
@@ -37,32 +35,32 @@ int set_opt_val(struct opt *opt, const char *val) {
 	return 0;
 }
 
-struct opt *get_opt(const char *lg, const char sh) {
+struct opt *get_opt(struct opt *opts, const char *lg, const char sh) {
 	if (!lg && !sh) {
 		return NULL;
 	}
-	for (int i = 0; ping.opts[i].lgopt; ++i) {
-		if ((sh && sh == ping.opts[i].shopt)
-			|| (lg && !strcmp(lg, ping.opts[i].lgopt))) {
-			return &ping.opts[i];
+	for (int i = 0; opts[i].lgopt; ++i) {
+		if ((sh && sh == opts[i].shopt)
+			|| (lg && !strcmp(lg, opts[i].lgopt))) {
+			return &opts[i];
 		}
 	}
 	return NULL;
 }
 
-void add_host(const char *host) {
+void add_host(struct ping *p, const char *host) {
 	if (!host) {
 		return;
 	}
-	if (ping.host_count == MAX_HOST) {
+	if (p->host_count == MAX_HOST) {
 		ping_error("too many hosts\n");
 	}
 
-	ping.hosts[ping.host_count] = (char*)host;
-	++ping.host_count;
+	p->hosts[p->host_count] = (char*)host;
+	++p->host_count;
 }
 
-void parse_args(int argc, const char **argv) {
+void parse_args(struct ping *p, int argc, const char **argv) {
 	for (int i = 1; i < argc; ++i) {
 		const char	*arg = argv[i];
 		size_t		len = strlen(arg);
@@ -75,7 +73,7 @@ void parse_args(int argc, const char **argv) {
 			if (arg[1] != '-') {
 				// short format '-...'
 				for (int j = 1; arg[j]; ++j) {
-					opt = get_opt(NULL, arg[j]);
+					opt = get_opt(p->opts, NULL, arg[j]);
 					if (!opt) {
 						ping_error("unrecognized option: `-%c`\n", arg[j]);
 					}
@@ -95,7 +93,7 @@ void parse_args(int argc, const char **argv) {
 			}
 			else if (len > 2) {
 				// long format '--...'
-				opt = get_opt(&arg[2], 0);
+				opt = get_opt(p->opts, &arg[2], 0);
 
 				if (!opt) {
 					ping_error("unrecognized option: `%s`\n", arg);
@@ -116,7 +114,7 @@ void parse_args(int argc, const char **argv) {
 			}
 		}
 		else {
-			add_host(arg);
+			add_host(p, arg);
 		}
 	}
 }

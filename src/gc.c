@@ -1,6 +1,6 @@
 #include "../inc/ft_ping.h"
 
-extern struct ping ping;
+extern struct ping p;
 struct ptrlist *gc = NULL;
 
 void gc_free() {
@@ -32,7 +32,7 @@ void gc_add(void *ptr) {
 
 void ping_exit() {
 	gc_free();
-	if (ping.socket) {
-		close(ping.socket);
+	if (p.socket) {
+		close(p.socket);
 	}
 }
