@@ -16,6 +16,7 @@
 #include <arpa/inet.h>
 #include <sys/time.h>
 #include <math.h>
+#include <signal.h>
 
 // Maximum number of host to ping
 #define MAX_HOST 16
@@ -87,5 +88,6 @@ void		icmp_echo_request(struct ping *p);
 void		icmp_response(struct ping *p);
 void		ping_stats(char *host, struct stats s);
 void		ping_init(struct ping *p);
+void		handle_sigint(int signum);
 
 #endif

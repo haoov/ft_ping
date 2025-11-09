@@ -13,12 +13,18 @@ void ft_ping(struct ping *p) {
 			get_opt(p->opts, "size", 0)->val.intgr
 		);
 
-		// Start loop
-		icmp_echo_request(p);
-		icmp_response(p);
-		sleep(1);
-		++p->stats.seq;
-		// End loop
+		double interval = get_opt(p->opts, "interval", 0)->val.dbl;
+		while (true) {
+			int count = get_opt(p->opts, "count", 0)->val.intgr;
+
+			icmp_echo_request(p);
+			icmp_response(p);
+			++p->stats.seq;
+			if (count != 0 && (int)p->stats.nsend >= count) {
+				break;
+			}
+			usleep(interval * 1000000);
+		}
 
 		ping_stats(host, p->stats);
 	}

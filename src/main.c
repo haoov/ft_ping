@@ -5,7 +5,7 @@ struct ping p = {
 	.sendbuf = NULL,
 	.recvbuf = NULL,
 	.opts = {
-		{"count", 'c', number, .val.intgr = 3},
+		{"count", 'c', number, .val.intgr = 0},
 		{"debug", 'd', boolean, .val.intgr = false},
 		{"interval", 'i', number, .val.dbl = 1.0},
 		{"numeric", 'n', boolean, .val.intgr = false},
@@ -30,6 +30,7 @@ struct ping p = {
 };
 
 int main(int argc, const char **argv) {
+	signal(SIGINT, handle_sigint);
 	atexit(ping_exit);
 	parse_args(&p, argc, argv);
 	if (!p.host_count) {
