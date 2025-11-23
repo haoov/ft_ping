@@ -8,6 +8,27 @@ bool is_float(const char *val) {
 	return false;
 }
 
+// !: Not tested
+// TODO: Test value checking
+int check_value(struct opt *opt) {
+	switch (opt->shopt) {
+		case 'c':
+		case 's':
+			if (opt->val.intgr <= 0) {
+				return 1;
+			}
+			break;
+		case 'i':
+		case 'w':
+		case 'W':
+			if (opt->val.dbl <= 1) {
+				return 1;
+			}
+			break;
+	}
+	return 0;
+}
+
 int set_opt_val(struct opt *opt, const char *val) {
 	if (opt->type == boolean) {
 		opt->val.intgr = true;
@@ -32,7 +53,7 @@ int set_opt_val(struct opt *opt, const char *val) {
 	else {
 		opt->val.ptr = (char*)val;
 	}
-	return 0;
+	return check_value(opt);
 }
 
 struct opt *get_opt(struct opt *opts, const char *lg, const char sh) {

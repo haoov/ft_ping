@@ -33,8 +33,16 @@ int receive_icmp_packet(struct ping *p) {
 	
 	memset(p->recvbuf, 0, buflen);
 	n = recvfrom(p->socket, p->recvbuf, buflen, 0, (struct sockaddr*)&p->addr, &addrlen);
-	if (n == -1 && errno != EAGAIN && errno != EWOULDBLOCK) {
-		ping_error("%s\n", strerror(errno));
+	if (n == -1) {
+		switch (errno) {
+			case EAGAIN:
+				printf("Request timeout for icmp_seq %d\n", p->stats.seq);
+				break;
+			case EINTR:
+				return n;
+			default:
+				ping_error("%s\n", strerror(errno));
+		}
 	}
 	++p->stats.nrecv;
 	return n;

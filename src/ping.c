@@ -1,5 +1,9 @@
 #include "../inc/ft_ping.h"
 
+void ping_host(char *host, struct ping *p) {
+	// TODO: ping single host with interrupt handling for host 0  
+}
+
 void ft_ping(struct ping *p) {
 	for (int i = 0; i < p->host_count; ++i) {
 		char *host = p->hosts[i];

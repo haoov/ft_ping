@@ -1,10 +1,10 @@
 #include "ft_ping.h"
 
 extern struct ping p;
+volatile sig_atomic_t interrupt = false;
 
 void handle_sigint(int signum) {
 	(void)signum;
-	struct opt *count = get_opt(p.opts, "count", 0);
 	
-	count->val.intgr = 1;
+	interrupt = true;
 }
