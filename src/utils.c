@@ -39,3 +39,31 @@ uint16_t compute_cheksum(uint16_t *addr, int count) {
 	return (~sum);
 }
 
+void print_help() {
+	printf("Usage: ft_ping [options] [<hosts>]\n");
+	printf("Options:\n");
+	printf("  -c, --count=NUMBER        Stop after sending NUMBER packets.\n");
+	printf("  -i, --interval=NUMBER     Wait NUMBER seconds between sending each packet.\n");
+	printf("  -n, --numeric             Do not resolve host addresses\n");
+	printf("  -v, --verbose             Verbose output.\n");
+	printf("  -w, --timeout=NUMBER      Time to wait for a response, in seconds.\n");
+	printf("  -W, --linger=STRING       Time to wait before closing the socket, in seconds.\n");
+	printf("  -?, --help                Display this help and exit.\n");
+	printf("  -V, --version             Output version information and exit.\n");
+	printf("  -p, --pattern=STRING      Use the specified pattern for the payload data.\n");
+	printf("  -q, --quiet               Quiet output.\n");
+	printf("  -s, --size=NUMBER         Specify the number of data bytes to be sent.\n");
+}
+
+void ping_no_args(struct ping *p) {
+	if (get_opt(p->opts, "help", 0)->val.intgr) {
+		print_help();
+		exit(EXIT_SUCCESS);
+	}
+	if (get_opt(p->opts, "version", 0)->val.intgr) {
+		printf("ft_ping version 1.0.0\n");
+		exit(EXIT_SUCCESS);
+	}
+
+	ping_error("missing host operand\n");
+}

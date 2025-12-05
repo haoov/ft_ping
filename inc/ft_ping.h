@@ -89,5 +89,6 @@ void		icmp_response(struct ping *p);
 void		ping_stats(char *host, struct stats s);
 void		ping_init(struct ping *p);
 void		handle_sigint(int signum);
+void		ping_no_args(struct ping *p);
 
 #endif

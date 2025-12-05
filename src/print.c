@@ -11,6 +11,6 @@ void ping_error(const char *fmt, ...) {
 	fprintf(stderr, "ft_ping: ");
 	vfprintf(stderr, fmt, ap);
 	va_end(ap);
-	fprintf(stderr, "Try `ping --help` or `ping --usage` for more information.\n");
+	fprintf(stderr, "Try `ping --help` for more information.\n");
 	exit(1);
 }

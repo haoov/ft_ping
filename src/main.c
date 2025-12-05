@@ -34,7 +34,7 @@ int main(int argc, const char **argv) {
 	atexit(ping_exit);
 	parse_args(&p, argc, argv);
 	if (!p.host_count) {
-		ping_error("missing host operand\n");
+		ping_no_args(&p);
 	}
 	ping_init(&p);
 	ft_ping(&p);

@@ -77,6 +77,7 @@ int icmp_echo_reply(struct ping *p, int size) {
 				printf("wrong data byte #%d should be 0x%02X but was 0x%02X\n",
 					i, pattern[i % plen], data[i]
 				);
+				return -1;
 			}
 		}
 	}
@@ -93,6 +94,10 @@ int icmp_echo_reply(struct ping *p, int size) {
 		p->stats.tmin = rtt;
 	}
 	p->stats.tmax = p->stats.tmax < rtt ? rtt : p->stats.tmax;
+
+	if (get_opt(p->opts, "quiet", 0)->val.intgr) {
+		return 0;
+	}
 
 	printf("%d bytes from %s: icmp_seq=%u ttl=%d time=%.3f ms\n",
 		data_len,
