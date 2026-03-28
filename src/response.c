@@ -37,7 +37,7 @@ int receive_icmp_packet(struct ping *p) {
 		switch (errno) {
 			case EAGAIN:
 				printf("Request timeout for icmp_seq %d\n", p->stats.seq);
-				break;
+				return n;
 			case EINTR:
 				return n;
 			default:
@@ -50,7 +50,7 @@ int receive_icmp_packet(struct ping *p) {
 
 int icmp_echo_reply(struct ping *p, int size) {
 	struct ip *ip = (struct ip *)p->recvbuf;
-	struct in_addr dest = ip->ip_dst;
+	struct in_addr dest = ip->ip_src;
 	int iphdrlen = ip->ip_hl * 4;
 	struct icmp *pkt = (struct icmp *)(p->recvbuf + iphdrlen);
 	struct timeval send_time, recv_time;
@@ -90,7 +90,7 @@ int icmp_echo_reply(struct ping *p, int size) {
 	p->stats.tsum += rtt;
 	p->stats.tsumsq += rtt * rtt;
 
-	if (p->stats.tmin == 0 || p->stats.tmin > rtt) {
+	if (p->stats.tmin < 0 || p->stats.tmin > rtt) {
 		p->stats.tmin = rtt;
 	}
 	p->stats.tmax = p->stats.tmax < rtt ? rtt : p->stats.tmax;
@@ -171,8 +171,12 @@ void icmp_source_quench(struct icmp *icmp) {
 
 void icmp_response(struct ping *p) {
 	int n;
+	int verbose = get_opt(p->opts, "verbose", 0)->val.intgr;
 
 	n = receive_icmp_packet(p);
+	if (n == -1) {
+		return;
+	}
 
 	struct ip *iphdr = (struct ip *)p->recvbuf;
 
@@ -182,19 +186,28 @@ void icmp_response(struct ping *p) {
 	struct icmp *icmp = (struct icmp*)(p->recvbuf + iphdr->ip_hl * 4);
 	switch (icmp->icmp_type) {
 		case ICMP_UNREACH:
-			icmp_dest_unreachable(icmp);
+			if (verbose) {
+				icmp_dest_unreachable(icmp);
+			}
 			return;
 		case ICMP_TIMXCEED:
-			icmp_time_exceeded(icmp);
+			if (verbose) {
+				icmp_time_exceeded(icmp);
+			}
 			return;
 		case ICMP_SOURCEQUENCH:
-			icmp_source_quench(icmp);
+			if (verbose) {
+				icmp_source_quench(icmp);
+			}
 			return;
 		case ICMP_REDIRECT:
-			icmp_redirect(icmp);
-			[[fallthrough]];
+			if (verbose) {
+				icmp_redirect(icmp);
+			}
+			return;
 		case ICMP_ECHOREPLY:
 			icmp_echo_reply(p, n);
+			break;
 		default:
 			break;
 	}

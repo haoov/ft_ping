@@ -38,6 +38,7 @@ struct opt {
 	enum {
 		boolean,
 		number,
+		floating,
 		string
 	} type;
 	union {

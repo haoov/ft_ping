@@ -5,13 +5,16 @@ void init_socket(struct ping *p) {
 	if (p->socket == -1) {
 		ping_error("%s\n", strerror(errno));
 	}
-	struct opt *interval = get_opt(p->opts, "interval", 0);
+	struct opt *linger = get_opt(p->opts, "linger", 0);
 	struct timeval tv = {
-		.tv_sec = (int)interval->val.dbl,
-		.tv_usec = (interval->val.dbl - tv.tv_sec) * 1000000
+		.tv_sec = (int)linger->val.dbl,
+		.tv_usec = (long)((linger->val.dbl - (int)linger->val.dbl) * 1000000)
 	};
-	size_t optlen = sizeof(tv);
-	if (setsockopt(p->socket, SOL_SOCKET, SO_RCVTIMEO, &tv, optlen) == -1) {
+	if (setsockopt(p->socket, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) == -1) {
+		ping_error("%s\n", strerror(errno));
+	}
+	int ttl = get_opt(p->opts, "ttl", 0)->val.intgr;
+	if (setsockopt(p->socket, IPPROTO_IP, IP_TTL, &ttl, sizeof(ttl)) == -1) {
 		ping_error("%s\n", strerror(errno));
 	}
 }

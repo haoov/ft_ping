@@ -11,20 +11,20 @@ bool is_float(const char *val) {
 // !: Not tested
 // TODO: Test value checking
 int check_value(struct opt *opt) {
-	switch (opt->shopt) {
-		case 'c':
-		case 's':
-			if (opt->val.intgr <= 0) {
-				return 1;
-			}
-			break;
-		case 'i':
-		case 'w':
-		case 'W':
-			if (opt->val.dbl <= 1) {
-				return 1;
-			}
-			break;
+	if (opt->type == floating) {
+		if (opt->val.dbl <= 0) {
+			return 1;
+		}
+	}
+	else if (opt->type == number) {
+		switch (opt->shopt) {
+			case 'c':
+			case 's':
+				if (opt->val.intgr <= 0) {
+					return 1;
+				}
+				break;
+		}
 	}
 	return 0;
 }
@@ -33,16 +33,20 @@ int set_opt_val(struct opt *opt, const char *val) {
 	if (opt->type == boolean) {
 		opt->val.intgr = true;
 	}
+	else if (opt->type == floating) {
+		char *endptr;
+		opt->val.dbl = strtod(val, &endptr);
+		if (errno) {
+			ping_error("%s: %s\n", val, strerror(errno));
+		}
+		if (*endptr && endptr != val) {
+			return 1;
+		}
+	}
 	else if (opt->type == number) {
 		char *endptr;
-		if (is_float(val)) {
-			double dval = strtod(val, &endptr);
-			opt->val.dbl = dval;
-		}
-		else {
-			intmax_t ival = strtoimax(val, &endptr, 10);
-			opt->val.intgr = (int)ival;
-		}
+		intmax_t ival = strtoimax(val, &endptr, 10);
+		opt->val.intgr = (int)ival;
 		if (errno) {
 			ping_error("%s: %s\n", val, strerror(errno));
 		}

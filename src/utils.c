@@ -12,8 +12,9 @@ void resolve_host(struct ping *p, const char *host) {
 		.ai_flags = flags,
 	};
 	struct addrinfo *res = NULL;
-	if (getaddrinfo(host, NULL, &hints, &res) == -1) {
-		ping_error("%s\n", strerror(errno));
+	int ret = getaddrinfo(host, NULL, &hints, &res);
+	if (ret != 0) {
+		ping_error("%s: %s\n", host, gai_strerror(ret));
 	}
 	if (!res) {
 		ping_error("unknown host `%s`\n", host);

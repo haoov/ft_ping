@@ -32,7 +32,7 @@ void gc_add(void *ptr) {
 
 void ping_exit() {
 	gc_free();
-	if (p.socket) {
+	if (p.socket >= 0) {
 		close(p.socket);
 	}
 }

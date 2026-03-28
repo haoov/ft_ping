@@ -8,7 +8,7 @@ void create_icmp_packet(struct ping *p) {
 	pkt->icmp_cksum = 0;
 	pkt->icmp_type = ICMP_ECHO;
 	pkt->icmp_code = 0;
-	pkt->icmp_id = getpid();
+	pkt->icmp_id = getpid() & 0xFFFF;
 	pkt->icmp_seq = p->stats.seq;
 	char *pattern = get_opt(p->opts, "pattern", 0)->val.ptr;
 	if (pattern) {
